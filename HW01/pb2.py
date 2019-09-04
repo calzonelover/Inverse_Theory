@@ -41,7 +41,7 @@ def get_model_by_slq(A, d):
 
 def get_model_by_wlq(A, d, sigma):
 	inv_sigma = np.divide(np.ones(sigma.shape), sigma)
-	W = np.multiply(np.identity(N, dtype=float), inv_sigma)
+	W = np.diagflat(inv_sigma)
 	A_W, d_W = np.matmul(W, A), np.matmul(W, d)
 	inverse_A_W = np.linalg.inv(np.matmul(A_W.T, A_W))
 	return np.matmul(inverse_A_W.T, np.matmul(A_W.T, d_W))

@@ -5,7 +5,7 @@ import random
 N = 20
 N_OUTLIER = 2
 DISTANCE_BIAS = 3
-EPSILON = 1e-6 # tolerance
+EPSILON = 1e-12 # tolerance
 
 a = 1.0
 b = -0.5
@@ -13,6 +13,8 @@ SIGMA = 0.2
 
 MAX_X = 5.0
 MIN_X = -5.0
+
+KEEP_EPSILON = []
 
 def linear_model(x):
 	n = np.random.normal(loc=0, scale=SIGMA)
@@ -35,15 +37,15 @@ def get_model_by_slq(A, d):
 
 # L1
 def get_R(A, d, m_ki):
-	r = np.subtract(d, np.matmul(A, m_ki))
-	return np.linalg.inv(np.multiply(np.identity(N, dtype=float), r))
+	r = np.absolute(np.subtract(d, np.matmul(A, m_ki)))
+	return np.diagflat(np.divide(1.0, r))
 
 def get_m(A, d, R_ki):
 	inv_term = np.linalg.inv(np.matmul(A.T, np.matmul(R_ki, A)))
 	return np.matmul(inv_term, np.matmul(A.T, np.matmul(R_ki, d)))
 
 def get_e(m_ki, m_kf):
-	return np.linalg.norm(np.subtract(m_kf, m_ki))/(1+np.linalg.norm(m_kf))
+	return np.linalg.norm(np.subtract(m_kf, m_ki))/(1.0+np.linalg.norm(m_kf))
 
 def get_model_by_l1r(A, d, m_0, epsilon):
 	m_ki = m_0
@@ -54,7 +56,8 @@ def get_model_by_l1r(A, d, m_0, epsilon):
 		if e_now < epsilon:
 			break
 		m_ki = m_kf
-		# print(e_now, m_kf)
+		KEEP_EPSILON.append(e_now)
+	print("Epsilon_now = {}".format(e_now))
 	return m_kf
 
 if __name__ == "__main__":
@@ -70,6 +73,15 @@ if __name__ == "__main__":
 	print("L1 Regression method")
 	m_l1r = get_model_by_l1r(A, d, m_slq, EPSILON)
 	print("Parameter a = {}, b = {}".format(m_l1r[0, 0], m_l1r[1, 0]))
+
+    # visual
+	plt.plot(KEEP_EPSILON)
+	plt.xlabel("Iteration Number")
+	plt.ylabel("$\epsilon_{now}$")
+	plt.savefig("epsilon3.png")
+	plt.yscale('log')
+	plt.savefig("epsilon3_log.png")
+	plt.clf()
 
     # visual
 	plt.plot(samples['x'], samples['y'], 'ro', label="y = ax + b + $\mathcal{N}$(0, 0.2)")
