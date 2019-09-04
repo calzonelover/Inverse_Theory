@@ -1,5 +1,12 @@
 # HW 1 
 
+### Configuration
+Sampling = 20
+
+A = 1, b = -0.5
+
+X_min = -5.0 and X_min = 5.0
+
 ## Problem 1
 
 The model for Standard least squares method could be written as
@@ -26,7 +33,7 @@ But for this case, we fix ![](https://latex.codecogs.com/svg.latex?\sigma&space;
 <p align="center">
     <img src="dist1.png" width="500px" >
     <br>
-    <em>Sampling distribution</em>
+    <em>Distribution of sampling </em>
 </p>
 
 ```bash
@@ -43,7 +50,7 @@ Model parameters that we get from both method is the same in this case.
 <p align="center">
     <img src="dist2.png" width="500px" >
     <br>
-    <em>Sampling distribution</em>
+    <em>Distribution of sampling </em>
 </p>
 
 ```bash
@@ -55,6 +62,8 @@ Parameter a = 1.0048940649993203, b = -0.5054369892491586
 Regarding to the result, parameters that we got are very similar and difference only in third order.
 
 ## Problem 3
+### Outlier generator
+Picking up 2 of those sampling and add by 3 where the direction is also randomed for both positive and negative.
 ### L1 Regression
 * Notation for a relations
     * <a href="https://www.codecogs.com/eqnedit.php?latex=R_{ki}&space;\leftarrow&space;\text{diag}<(|d-Am_{ki}|)^{-1}>" target="_blank"><img src="https://latex.codecogs.com/svg.latex?R_{ki}&space;\leftarrow&space;\text{diag}<(|d-Am_{ki}|)^{-1}>" title="R_{ki} \leftarrow \text{diag}<(|d-Am_{ki}|)^{-1}>" /></a>
@@ -71,6 +80,7 @@ func get_model_by_l1r(A, d, m_0, epsilon)
         e_now <- get_e(m_ki, m_kf)
         if e_now < epsilon then
             break
+        endif
         m_ki <- m_kf
     return m_kf
 end func
@@ -81,7 +91,7 @@ end func
 <p align="center">
     <img src="dist3.png" width="500px" >
     <br>
-    <em>Sampling distribution</em>
+    <em>Distribution of sampling </em>
 </p>
 
 <p align="center">
