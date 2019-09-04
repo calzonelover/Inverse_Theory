@@ -55,7 +55,7 @@ Parameter a = 1.0048940649993203, b = -0.5054369892491586
 Regarding to the result, parameters that we got are very similar and difference only in third order.
 
 ## Problem 3
-
+### L1 Regression
 * Notation for a relations
     * <a href="https://www.codecogs.com/eqnedit.php?latex=R_{ki}&space;\leftarrow&space;\text{diag}<(|d-Am_{ki}|)^{-1}>" target="_blank"><img src="https://latex.codecogs.com/svg.latex?R_{ki}&space;\leftarrow&space;\text{diag}<(|d-Am_{ki}|)^{-1}>" title="R_{ki} \leftarrow \text{diag}<(|d-Am_{ki}|)^{-1}>" /></a>
     * <a href="https://www.codecogs.com/eqnedit.php?latex=m_{kf}&space;\leftarrow&space;(A^TR_{ki}A)^{-1}A^TR_{ki}d" target="_blank"><img src="https://latex.codecogs.com/svg.latex?m_{kf}&space;\leftarrow&space;(A^TR_{ki}A)^{-1}A^TR_{ki}d" title="m_{kf} \leftarrow (A^TR_{ki}A)^{-1}A^TR_{ki}d" /></a>
