@@ -16,7 +16,7 @@ The model for Standard least squares method could be written as
 
 The model for Weight least squares method could be written as
 <p align="center">
-<a href="https://www.codecogs.com/eqnedit.php?latex=m_{\text{LS}}&space;=&space;(A_w^TA_w)^{-1}A_w^Td_w" target="_blank"><img src="https://latex.codecogs.com/svg.latex?m_{\text{LS}}&space;=&space;(A_w^TA_w)^{-1}A_w^Td_w" title="m_{\text{LS}} = (A_w^TA_w)^{-1}A_w^Td_w" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=m_{\text{LS}}&space;=&space;(A_w^TA_w)^{-1}A_w^Td_w" target="_blank"><img src="https://latex.codecogs.com/svg.latex?m_{\text{WLS}}&space;=&space;(A_w^TA_w)^{-1}A_w^Td_w" title="m_{\text{WLS}} = (A_w^TA_w)^{-1}A_w^Td_w" /></a>
 </p>
 where
 

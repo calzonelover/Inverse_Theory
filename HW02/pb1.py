@@ -6,12 +6,11 @@ import scipy.io
 WIDTH = 100
 HEIGHT = 100
 BLUR_IMG_MAT_FILE = 'd.mat'
-EPSILON = 1e-3
+EPSILONS = (1e-1, 1e-8)
 D = 2
 
-
 def load_blur_img(mat_file):
-    return np.array(scipy.io.loadmat(mat_file)['d'], dtype=float).reshape(1,-1)
+    return np.array(scipy.io.loadmat(mat_file)['d'], dtype=float)
 
 def vec_to_img(vec):
     return vec.reshape(WIDTH, HEIGHT)
@@ -26,9 +25,9 @@ def get_identity_tensor(d, n=WIDTH):
 
 if D == 2:
     # K as tensor rank 2 (Matrix)
-    def kernel(i, ip):
-        i, j = (i % WIDTH), math.floor(i/WIDTH)
-        ip, jp = (ip % WIDTH), math.floor(ip/WIDTH)
+    def kernel(g_i, g_ip):
+        i, j = (g_i % WIDTH), math.floor(g_i/WIDTH)
+        ip, jp = (g_ip % WIDTH), math.floor(g_ip/WIDTH)
         x, xp = get_position(i), get_position(j)
         y, yp = get_position(ip), get_position(jp)
         square_diff_x = (x-xp)**2 + (y-yp)**2
@@ -58,32 +57,31 @@ else:
         return init_k
 
 if __name__ == '__main__':
-    blur_img_vec = load_blur_img(BLUR_IMG_MAT_FILE).reshape(-1, 1)
+    blur_img_vec = load_blur_img(BLUR_IMG_MAT_FILE)
     blur_img = vec_to_img(blur_img_vec)
+
+    # plt.imshow(blur_img, cmap=plt.cm.gray_r)
+    # plt.savefig("blured_galaxy.png")
 
     A = get_k_tensor()
     print(A)
 
-    if D == 2:
-        inv_term = np.linalg.inv(np.add(
-                        np.matmul(A.T, A),
-                        np.multiply(np.identity(WIDTH*HEIGHT, dtype=float), EPSILON)
-                    ))
-        clear_img_vec = np.matmul(inv_term, np.matmul(A.T, blur_img_vec))
-        clear_img = clear_img_vec.reshape(WIDTH, WIDTH)
-    else:
-        tensor_identity_ep = EPSILON*get_identity_tensor(4, n=WIDTH)
-        inv_term = np.linalg.inv(np.add(
-                        np.matmul(A.T, A),
-                        tensor_identity_ep
-                    ))
-        clear_img = np.matmul(inv_term, np.matmul(A.T, blur_img))
+    for EPSILON in EPSILONS:
+        if D == 2:
+            inv_term = np.linalg.inv(np.add(
+                            np.matmul(A.T, A),
+                            np.multiply(np.identity(WIDTH*HEIGHT, dtype=float), EPSILON)
+                        ))
+            clear_img_vec = np.matmul(inv_term, np.matmul(A.T, blur_img_vec))
+            clear_img = clear_img_vec.reshape(WIDTH, WIDTH)
+        else:
+            tensor_identity_ep = EPSILON*get_identity_tensor(4, n=WIDTH)
+            inv_term = np.linalg.inv(np.add(
+                            np.matmul(A.T, A),
+                            tensor_identity_ep
+                        ))
+            clear_img = np.matmul(inv_term, np.matmul(A.T, blur_img))
 
-    # visual
-    plt.imshow(blur_img, cmap=plt.cm.gray_r)
-    plt.show()
-
-    plt.clf()
-
-    plt.imshow(clear_img, cmap=plt.cm.gray_r)
-    plt.show()
+        # visual
+        plt.imshow(clear_img, cmap=plt.cm.gray_r)
+        plt.savefig("deblured_galaxy_ep{}.png".format(EPSILON))
