@@ -24,10 +24,16 @@ Since governing equation is
 <a href="https://www.codecogs.com/eqnedit.php?latex=d&space;=&space;K(m)" target="_blank"><img src="https://latex.codecogs.com/svg.latex?d&space;=&space;K(m)" title="d = K(m)" /></a>
 </p>
 
-The Kernel will be a tensor rank 4 where it could leading to a complicated operation. Then we need to convert the indices from matrix to vector and the kernel will become a tensor rank 2 as
+The Kernel will be a tensor rank 4 
 
 <p align="center">
-<a href="https://www.codecogs.com/eqnedit.php?latex=d(i,&space;i')&space;=&space;\sum_{i'}&space;k_{ii'}m(i')" target="_blank"><img src="https://latex.codecogs.com/svg.latex?d(i,&space;i')&space;=&space;\sum_{i'}&space;k_{ii'}m(i')" title="d(i, i') = \sum_{i'} k_{ii'}m(i')" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=d_{ij}&space;=&space;\sum_{i'}\sum_{j'}&space;k_{iji'j'}m_{i'j'}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?d_{ij}&space;=&space;\sum_{i'}\sum_{j'}&space;k_{iji'j'}m_{i'j'}" title="d_{ij} = \sum_{i'}\sum_{j'} k_{iji'j'}m_{i'j'}" /></a>
+</p>
+
+where it could leading to a complicated operation. Then we need to convert the indices from matrix to vector and the kernel will become a tensor rank 2 as
+
+<p align="center">
+<a href="https://www.codecogs.com/eqnedit.php?latex=d_i&space;=&space;\sum_{i'}&space;k_{ii'}m_{i'}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?d_i&space;=&space;\sum_{i'}&space;k_{ii'}m_{i'}" title="d_i = \sum_{i'} k_{ii'}m_{i'}" /></a>
 </p>
 
 The original image could be calculated by using relation
