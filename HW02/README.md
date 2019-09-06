@@ -55,5 +55,5 @@ which A is equivalent to kernel (K) in this case.
 <p align="center">
     <img src="deblured_galaxy_ep1e-08.png" width="500px" >
     <br>
-    <em>Deblured Galaxy</em>
+    <em>Deblured Galaxy where epsilon = 10^-8</em>
 </p>
