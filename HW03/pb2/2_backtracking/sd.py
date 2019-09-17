@@ -5,8 +5,8 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 A, B = 1, 100
-C = 0.2
-EPSILON = 1e-6
+C = 0.1
+EPSILON = 1e-2
 ALPHA0 = 1.0
 ALPHA_DECAYRATE = 0.8
 
@@ -69,4 +69,5 @@ if __name__ == '__main__':
     plt.xlabel('$x_1$')
     plt.ylabel('$x_2$')
     plt.title("Rosenbrock Potential")
-    plt.show()
+    # plt.show()
+    plt.savefig("sd.png")
