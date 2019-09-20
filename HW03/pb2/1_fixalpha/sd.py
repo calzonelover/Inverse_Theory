@@ -29,6 +29,7 @@ if __name__ == '__main__':
     ps = []
     x1s = []
     x2s = []
+    rs = []
     x1s.append(x1)
     x2s.append(x2)
     while r > EPSILON:
@@ -41,6 +42,7 @@ if __name__ == '__main__':
         x2s.append(x2k1)
         k +=1
         r = func(x1k1, x2k1)
+        rs.append(r)
     ## Visualize
     # contour
     x, y = np.meshgrid(np.linspace(-5, 5, 1000),
@@ -56,3 +58,9 @@ if __name__ == '__main__':
     plt.ylabel('$x_2$')
     plt.title("Rosenbrock Potential (SD, Fixed Alpha={})".format(ALPHA))
     plt.savefig("sd.png")
+    # decay
+    plt.clf()
+    plt.plot(rs)
+    plt.yscale("log")
+    plt.title("Decay of objective function")
+    plt.savefig("sd_r.png")

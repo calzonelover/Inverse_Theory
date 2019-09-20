@@ -42,6 +42,7 @@ if __name__ == '__main__':
     ps = []
     x1s = []
     x2s = []
+    rs = []
     x1s.append(x1)
     x2s.append(x2)
 
@@ -61,6 +62,7 @@ if __name__ == '__main__':
         x2s.append(x2k1)
         k += 1
         r = func(x1k1, x2k1)
+        rs.append(r)
         # print(r)
     ## Visualize
     # contour
@@ -78,3 +80,9 @@ if __name__ == '__main__':
     plt.title("Rosenbrock Potential (Fixed Alpha)")
     # plt.show()
     plt.savefig("cg.png")
+    # decay
+    plt.clf()
+    plt.plot(rs)
+    plt.yscale("log")
+    plt.title("Decay of objective function")
+    plt.savefig("cg_r.png")
