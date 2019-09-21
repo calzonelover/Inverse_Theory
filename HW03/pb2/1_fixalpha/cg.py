@@ -5,7 +5,7 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 A, B = 1, 100
-EPSILON = 1e-0
+EPSILON = 1e-2
 ALPHA = 1e-5
 
 def func(x1, x2, a=A, b=B):
@@ -20,6 +20,8 @@ def hess_func(x1, x2, a=A, b=B):
         [2+4*b*(3*x1**2-x2), -4*b*x1],
         [-4*b*x1, 2*b],
     ])
+def normalize(x):
+    return  x/np.linalg.norm(x)
 
 if __name__ == '__main__':
     x1, x2 = 3.0, -2.0
@@ -41,7 +43,7 @@ if __name__ == '__main__':
         gradk = grad_func(x1s[k],x2s[k])
         gradk1 = grad_func(x1k1,x2k1)
         betak1 = np.matmul(gradk1.T, gradk1)/np.matmul(gradk.T, gradk)
-        pk = np.add(-1.0*gradk1, np.multiply(pk, betak1))
+        pk = normalize(np.add(-1.0*gradk1, np.multiply(pk, betak1)))
 
         ps.append(pk)
         x1s.append(x1k1)
@@ -49,7 +51,7 @@ if __name__ == '__main__':
         k += 1
         r = func(x1k1, x2k1)
         rs.append(r)
-        # print(r)
+        print(r)
     ## Visualize
     # contour
     x, y = np.meshgrid(np.linspace(-5, 5, 1000),

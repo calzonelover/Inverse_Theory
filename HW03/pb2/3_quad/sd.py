@@ -22,20 +22,47 @@ def hess_func(x1, x2, a=A, b=B):
         [-4*b*x1, 2*b],
     ])
 
-def get_proper_alpha(x1k, x2k, pk):
-    alphak = ALPHA0
-    while True:
-        x1k1 = x1k + alphak * pk[0]
-        x2k1 = x2k + alphak * pk[1]
-        grad0 = grad_func(x1k, x2k)
-        phi0 = func(x1k, x2k)
-        phi1 = func(x1k1, x1k1)
-        phi_d0 = np.matmul(grad0.T, pk)
-        if phi1 <= phi0 + C * alphak * phi_d0:
-            break
-        numerator = -np.multiply(phi_d0, alphak**2)
-        denominator = 2.0*(phi1 - phi0 - alphak*phi_d0)
-        alphak = numerator/denominator
+def get_proper_alpha(x1_0, x2_0, pk):
+    alpha0 = ALPHA0
+    x1_alpha0 = x1_0 + alpha0 * pk[0]
+    x2_alpha0 = x2_0 + alpha0 * pk[1]
+    phi_0 = func(x1_0, x2_0)
+    grad_0 = grad_func(x1_0, x2_0)
+    phi_d0 = np.matmul(grad_0.T, pk)
+    phi_alpha0 = func(x1_alpha0, x2_alpha0)
+    # quad
+    alpha1_numerator = -np.multiply(phi_d0, alpha0**2)
+    alpha1_denominator = 2.0*(phi_alpha0 - phi_0 - alpha0*phi_d0)
+    alpha1 = alpha1_numerator/alpha1_denominator
+    if phi_alpha0 <= phi_0 + C * alpha1 * phi_d0:
+        alphak = alpha1
+    else:
+        while True:
+            x1_alpha0 = x1_0 + alpha0 * pk[0]
+            x2_alpha0 = x2_0 + alpha0 * pk[1]
+            x1_alpha1 = x1_0 + alpha1 * pk[0]
+            x2_alpha1 = x2_0 + alpha1 * pk[1]
+            phi_alpha0 = func(x1_alpha0, x2_alpha0)
+            phi_alpha1 = func(x1_alpha1, x2_alpha1)            
+
+            alpha_matrix = np.array([[alpha0**2, -alpha1**2], [-alpha0**3, alpha1**3]])
+            phi_matrix = np.array([phi_alpha1 - phi_0 - alpha1*phi_d0, phi_alpha0 - phi_0 - alpha0*phi_d0])
+            ab = (1.0/(alpha0**2*alpha1**2*(alpha1-alpha0)))*np.matmul(alpha_matrix, phi_matrix)
+            a, b = ab[0], ab[1]
+            try:
+                alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
+                print("large!")
+            except ValueError:
+                # alpha2 = -b/(3*a)
+                alpha2 = alpha1/2
+            print(alpha1, alpha2)
+            # alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
+            if phi_alpha0 <= phi_0 + C * alpha2 * phi_d0:
+                alphak = alpha2
+                break
+
+            alpha0 = alpha1
+            alpha1 = alpha2
     return alphak
 
 if __name__ == '__main__':
