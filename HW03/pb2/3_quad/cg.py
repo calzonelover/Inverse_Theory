@@ -43,7 +43,7 @@ def get_proper_alpha(x1_0, x2_0, pk):
             x1_alpha1 = x1_0 + alpha1 * pk[0]
             x2_alpha1 = x2_0 + alpha1 * pk[1]
             phi_alpha0 = func(x1_alpha0, x2_alpha0)
-            phi_alpha1 = func(x1_alpha1, x2_alpha1)            
+            phi_alpha1 = func(x1_alpha1, x2_alpha1)
 
             alpha_matrix = np.array([[alpha0**2, -alpha1**2], [-alpha0**3, alpha1**3]])
             phi_matrix = np.array([phi_alpha1 - phi_0 - alpha1*phi_d0, phi_alpha0 - phi_0 - alpha0*phi_d0])
@@ -51,12 +51,11 @@ def get_proper_alpha(x1_0, x2_0, pk):
             a, b = ab[0], ab[1]
             try:
                 alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
-                print("large!")
             except ValueError:
-                alpha2 = -b/(3*a)
-                # alpha2 = alpha1/2
+                # alpha2 = (-b)/(3*a)
+                alpha2 = alpha1/2
+                print("large!")
             print(alpha1, alpha2)
-            # alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
             if phi_alpha0 <= phi_0 + C * alpha2 * phi_d0:
                 alphak = alpha2
                 break
