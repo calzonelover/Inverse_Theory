@@ -20,11 +20,11 @@ if __name__ == "__main__":
     raw_map = readmap(filename=FILENAME)
 
     # visualize
-    plt.imshow(raw_map, cmap='jet', extent=[0, DX*NX, 0, DX*NY])
+    plt.imshow(raw_map, cmap='jet', extent=[0, DX*NX, DX*NY, 0])
     a = plt.colorbar()
     a.set_label('$v$')
     plt.title("Real Velocity")
-    plt.xlabel("$x_1$")
-    plt.ylabel("$x_2$")
+    plt.xlabel("$x$")
+    plt.ylabel("$y$")
     plt.savefig("real_v.png")
     # plt.show()
