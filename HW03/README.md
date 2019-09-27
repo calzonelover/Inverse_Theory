@@ -4,3 +4,4 @@
 
 
 ## Problem 2: Optimization Algorithms
+![](pb1/img/out.gif)

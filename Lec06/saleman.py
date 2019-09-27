@@ -5,15 +5,15 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-HOUSE = 20
-T = 300
+HOUSE = 100
+T = 3000
 T_DECAY = 0.9
 N_ACCEPTED_MAX = 10
 
 KEEP_DISTANCE = []
 
 REGION = np.array([
-    [np.random.uniform(100,-100), np.random.uniform(100,-100)] for i in range(HOUSE)
+    [np.random.uniform(1,-1), np.random.uniform(1,-1)] for i in range(HOUSE)
 ])
 
 def compute_path(sequence):
@@ -34,11 +34,27 @@ def swop_sequence(original_sequence, n_region):
 if __name__ == "__main__":
     n_region = len(REGION)
     accepted_sequence = random.sample([i for i in range(n_region)], n_region)
+    # visulize
+    plt.plot(REGION[:, 0], REGION[:, 1], 'o')
+
+    path_line = np.array([REGION[i] for i in accepted_sequence])
+    plt.plot(path_line[:, 0], path_line[:, 1], '.-')
+
+    plt.plot(REGION[accepted_sequence[0], 0], REGION[accepted_sequence[0], 1], 'ro', label="start")
+    plt.plot(REGION[accepted_sequence[-1], 0], REGION[accepted_sequence[-1], 1], 'go', label="end")
+    plt.legend()
+
+    plt.title('Saleman walking path')
+    plt.xlabel('x')
+    plt.ylabel('y')
+
+    plt.savefig('walking_path_0.png')
+    plt.clf()
     ##
     t = T
     n = 0
     distance_old = 100
-    while t > 1e-3:
+    while t > 1e-8:
         while n < N_ACCEPTED_MAX:
             # x <- x + dx
             sequence = swop_sequence(accepted_sequence, n_region)
@@ -48,12 +64,13 @@ if __name__ == "__main__":
             if diff_distance < 0:
                 n += 1
                 accepted_sequence = sequence
+                KEEP_DISTANCE.append(compute_path(accepted_sequence))
             else:
                 prob = math.e**(-diff_distance/t)
                 if np.random.uniform(0,1) < prob:
                     n += 1
                     accepted_sequence = sequence
-        KEEP_DISTANCE.append(compute_path(accepted_sequence))
+                    KEEP_DISTANCE.append(compute_path(accepted_sequence))
         n = 0
         t *= T_DECAY
     print("End t = {}".format(t))
