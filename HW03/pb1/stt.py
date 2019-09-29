@@ -10,7 +10,7 @@ import settings, ray
 REPORT_LOG = {
     'alphas': [],
     'norm_model': [],
-    'norm_res': []
+    'norm_res': [],
 }
 
 def readraw(filename):
@@ -36,8 +36,13 @@ if __name__ == "__main__":
                 y_r_i = settings.DX/2 + r_j * dy_sr
 
                 l_i = ray.ray_length(-10,y_s_i,1010,y_r_i)
+                t_i = np.add(
+                    np.matmul(s_real.T, l_i),
+                    np.random.normal(loc=0, scale=1e-4)
+                )
+
                 l.append(l_i)
-                t.append(np.matmul(s_real.T, l_i))
+                t.append(t_i)
         t = np.array(t)
         l = np.array(l)
         s_model = np.matmul(
@@ -49,13 +54,13 @@ if __name__ == "__main__":
             ),
             np.matmul(l.T, t)
         )
-        REPORT_LOG['alphas'] = alpha
-        REPORT_LOG['norm_model'] = np.linalg.norm(s_model)
-        REPORT_LOG['norm_res'] = np.linalg.norm(
+        REPORT_LOG['alphas'].append(alpha)
+        REPORT_LOG['norm_model'].append(np.sqrt(np.sum(np.square(s_model))))
+        REPORT_LOG['norm_res'].append(np.linalg.norm(
             np.subtract(
                 t,
-                np.multiply(s_model.T, l)
-        ))
+                np.matmul(s_model.T, l)
+        )))
         # visualize model
         map_model = s_model.reshape(settings.NX, settings.NY).T
         plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
@@ -68,10 +73,16 @@ if __name__ == "__main__":
         plt.clf()
         # plt.show()
 
-    # visual l-curve
-    plt.plot(REPORT_LOG['norm_res'], REPORT_LOG['norm_model'], 'o-')
-    plt.savefig('L_curve.png')
-    plt.clf()
+    # log l-curve
+    f_curve = open("l_curve.log", 'w')
+    f_curve.write("alpha,norm_res,norm_model\n")
+    for i in range(len(REPORT_LOG['norm_res'])):
+        f_curve.write("{},{},{}\n".format(
+            settings.ALPHAS[i],
+            REPORT_LOG['norm_res'][i],
+            REPORT_LOG['norm_model'][i])
+        )
+    f_curve.close()
 
     # visualize raw
     raw_map = readmap(filename=settings.FILENAME)
@@ -82,7 +93,7 @@ if __name__ == "__main__":
     plt.xlabel("$x$")
     plt.ylabel("$y$")
     plt.savefig("real_v.png")
-    plt.show()
+    # plt.show()
 
     '''
     # Test ray tracing
