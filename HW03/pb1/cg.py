@@ -54,15 +54,26 @@ if __name__ == "__main__":
     t_obs = np.matmul(s_real.T, l)
 
     s_model = np.ones(shape=(settings.NX * settings.NY,), dtype=float)
-    err = 0.5*np.subtract(
+    err = 0.5*np.linalg.norm(
+        np.subtract(
+            np.matmul(s_model.T, l),
+            t_obs
+        )
+    )
+    alpha = ALPHA0
+    pk_old = -0.5*np.subtract(
             np.matmul(s_model.T, l),
             t_obs
     )
-    alpha = ALPHA0
-    pk_old = -err
     while err > EPSILON:
         gradk = grad(l, s_model, t_obs)
-        betak = ???
+        betak = np.divide(
+            np.matmul(
+                    np.matmul(s_model.T, pk_old).T,
+                    np.matmul(s_model.T, gradk)
+            ),
+            np.sum(np.square(np.matmul(s_model.T, pk_old))),
+        )
         pk = -gradk + np.multiply(betak, pk_old)
         pk_norm = pk/np.linalg.norm(pk)
         alpha = -np.divide(
