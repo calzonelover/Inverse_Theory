@@ -59,12 +59,14 @@ if __name__ == "__main__":
             t_obs
     )
     alpha = ALPHA0
+    pk_old = -err
     while err > EPSILON:
         gradk = grad(l, s_model, t_obs)
-        pk = -gradk
+        betak = ???
+        pk = -gradk + np.multiply(betak, pk_old)
         pk_norm = pk/np.linalg.norm(pk)
-        alpha = np.divide(
-            np.sum(np.square(pk)),
+        alpha = -np.divide(
+            np.sum(np.matmul(gradk, pk)),
             np.sum(np.square(np.matmul(s_model.T, pk))),
         )
 
@@ -75,6 +77,7 @@ if __name__ == "__main__":
                 t_obs
             )
         )
+        pk_old = pk
         print(err)
 
     # visualize model

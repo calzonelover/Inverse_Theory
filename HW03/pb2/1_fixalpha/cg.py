@@ -21,7 +21,7 @@ def hess_func(x1, x2, a=A, b=B):
         [-4*b*x1, 2*b],
     ])
 def normalize(x):
-    return  x/np.linalg.norm(x)
+    return x/np.linalg.norm(x)
 
 if __name__ == '__main__':
     x1, x2 = 3.0, -2.0
