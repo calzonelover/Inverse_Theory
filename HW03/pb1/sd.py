@@ -9,7 +9,7 @@ import settings, ray
 
 # settings 
 ALPHA0 = 1e-2
-EPSILON = 2e6
+EPSILON = 1e4
 
 REPORT_LOG = {
     'alphas': [],
@@ -53,22 +53,34 @@ if __name__ == "__main__":
     l = get_l()
     t_obs = np.matmul(s_real.T, l)
 
-    s_model = np.ones(shape=(settings.NX * settings.NY,), dtype=float)
-    err = 0.5*np.subtract(
+    s_model = np.matmul(
+        np.linalg.inv(
+            np.add(
+                np.matmul(l.T, l),
+                np.multiply(0.1, np.identity(settings.NX*settings.NY, dtype=float))
+            )
+        ),
+        np.matmul(l.T, t_obs)
+    )
+    # s_model = 1500*np.ones(shape=(settings.NX * settings.NY,), dtype=float)
+    err = 0.5*np.linalg.norm(
+        np.subtract(
             np.matmul(s_model.T, l),
             t_obs
+        )
     )
     alpha = ALPHA0
     while err > EPSILON:
         gradk = grad(l, s_model, t_obs)
         pk = -gradk
-        pk_norm = pk/np.linalg.norm(pk)
+        if err < 2e6:
+            pk = pk/np.linalg.norm(pk)
         alpha = np.divide(
             np.sum(np.square(pk)),
             np.sum(np.square(np.matmul(s_model.T, pk))),
         )
 
-        s_model += np.multiply(alpha, pk_norm)
+        s_model += np.multiply(alpha, pk)
         err = 0.5*np.linalg.norm(
             np.subtract(
                 np.matmul(s_model.T, l),

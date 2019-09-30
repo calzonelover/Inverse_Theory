@@ -9,7 +9,7 @@ import settings, ray
 
 # settings 
 ALPHA0 = 1e-2
-EPSILON = 2e6
+EPSILON = 1e4
 
 REPORT_LOG = {
     'alphas': [],
@@ -60,35 +60,63 @@ if __name__ == "__main__":
             t_obs
         )
     )
-    alpha = ALPHA0
-    pk_old = -0.5*np.subtract(
-            np.matmul(s_model.T, l),
-            t_obs
+    r = np.subtract(
+        np.matmul(s_model.T, l),
+        t_obs
     )
+    alpha = ALPHA0
+    pk = -r
     while err > EPSILON:
-        gradk = grad(l, s_model, t_obs)
+        alpha = np.divide(
+            np.matmul(r.T, pk),
+            np.matmul(
+                pk.T,
+                np.matmul(
+                    s.T,
+                    pk
+                )
+            )
+        )
+        s_model_new += np.multiply(alpha, pk)
+        rk = np.subtract(
+            np.matmul(s_model_new.T, l),
+            t_obs
+        )
         betak = np.divide(
             np.matmul(
-                    np.matmul(s_model.T, pk_old).T,
-                    np.matmul(s_model.T, gradk)
+                ,
+                pk
             ),
-            np.sum(np.square(np.matmul(s_model.T, pk_old))),
+            np.matmul(
+                pk.T,
+                np.matmul(
+                    s.T,
+                    pk
+                )
+            )
         )
-        pk = -gradk + np.multiply(betak, pk_old)
-        pk_norm = pk/np.linalg.norm(pk)
-        alpha = -np.divide(
-            np.sum(np.matmul(gradk, pk)),
-            np.sum(np.square(np.matmul(s_model.T, pk))),
-        )
+        # gradk = grad(l, s_model, t_obs)
+        # betak = np.divide(
+        #     np.multiply(
+        #             np.matmul(s_model.T, pk_old),
+        #             np.matmul(s_model.T, gradk)
+        #     ),
+        #     np.sum(np.square(np.matmul(s_model.T, pk_old))),
+        # )
+        # pk = -gradk + np.multiply(betak, pk_old)
+        # alpha = -np.divide(
+        #     np.sum(np.matmul(gradk, pk)),
+        #     np.sum(np.square(np.matmul(s_model.T, pk))),
+        # )
 
-        s_model += np.multiply(alpha, pk_norm)
+        # s_model += np.multiply(alpha, pk)
         err = 0.5*np.linalg.norm(
             np.subtract(
                 np.matmul(s_model.T, l),
                 t_obs
             )
         )
-        pk_old = pk
+        # pk_old = pk
         print(err)
 
     # visualize model

@@ -59,7 +59,7 @@ if __name__ == "__main__":
         REPORT_LOG['norm_res'].append(np.linalg.norm(
             np.subtract(
                 t,
-                np.matmul(s_model.T, l)
+                np.matmul(s_model, l)
         )))
         # visualize model
         map_model = s_model.reshape(settings.NX, settings.NY).T
