@@ -22,6 +22,17 @@ def readmap(filename):
     a = a.reshape(settings.NX, settings.NY)
     return a.T
 
+def get_l():
+    dy_sr = (settings.NY * settings.DX)/settings.N_SOURCE
+    l = []
+    for s_i in range(settings.N_SOURCE):
+        for r_j in range(settings.N_RECEIVER):
+            y_s_i = settings.DX/2 + s_i * dy_sr
+            y_r_i = settings.DX/2 + r_j * dy_sr
+            l_i = ray.ray_length(-10,y_s_i,1010,y_r_i)
+            l.append(l_i)
+    return np.array(l)
+
 if __name__ == "__main__":
     s_real = readraw(filename=settings.FILENAME)
 
