@@ -35,27 +35,12 @@ def get_l():
 
 if __name__ == "__main__":
     s_real = readraw(filename=settings.FILENAME)
+    l = get_l()
+    t_obs = np.matmul(l, s_real)
 
     dy_sr = (settings.NY * settings.DX)/settings.N_SOURCE
-    for alpha in settings.ALPHAS:
+    for i, alpha in enumerate(settings.ALPHAS):
         print(alpha)
-        t = []
-        l = []
-        for s_i in range(settings.N_SOURCE):
-            for r_j in range(settings.N_RECEIVER):
-                y_s_i = settings.DX/2 + s_i * dy_sr
-                y_r_i = settings.DX/2 + r_j * dy_sr
-
-                l_i = ray.ray_length(-10,y_s_i,1010,y_r_i)
-                t_i = np.add(
-                    np.matmul(s_real.T, l_i),
-                    np.random.normal(loc=0, scale=1e-4)
-                )
-
-                l.append(l_i)
-                t.append(t_i)
-        t = np.array(t)
-        l = np.array(l)
         s_model = np.matmul(
             np.linalg.inv(
                 np.add(
@@ -63,24 +48,24 @@ if __name__ == "__main__":
                     np.multiply(alpha, np.identity(settings.NX*settings.NY, dtype=float))
                 )
             ),
-            np.matmul(l.T, t)
+            np.matmul(l.T, t_obs)
         )
         REPORT_LOG['alphas'].append(alpha)
         REPORT_LOG['norm_model'].append(np.sqrt(np.sum(np.square(s_model))))
         REPORT_LOG['norm_res'].append(np.linalg.norm(
             np.subtract(
-                t,
-                np.matmul(s_model, l)
+                t_obs,
+                np.matmul(l, s_model)
         )))
         # visualize model
         map_model = s_model.reshape(settings.NX, settings.NY).T
         plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
         a = plt.colorbar()
         a.set_label('$v$')
-        plt.title("Model Velocity (alpha = {:6.6f})".format(alpha))
+        plt.title("Model Velocity (alpha = {:010.05f})".format(alpha))
         plt.xlabel("$x$")
         plt.ylabel("$y$")
-        plt.savefig("img/model_v_alpha{}.png".format(alpha))
+        plt.savefig("img/model_v_alpha{:03d}.png".format(i))
         plt.clf()
         # plt.show()
 

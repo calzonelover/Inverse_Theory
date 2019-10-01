@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import settings, ray
 
 # settings 
-ALPHA0 = 1e-2
 EPSILON = 1e4
 
 REPORT_LOG = {
@@ -39,11 +38,9 @@ def get_l():
 
 def grad(l, s ,t):
     return 0.5*np.matmul(
-        (
-            np.subtract(
-                np.matmul(s.T, l),
-                t
-            )
+        np.subtract(
+            np.matmul(l, s),
+            t
         ).T,
         l
     )
@@ -53,78 +50,67 @@ if __name__ == "__main__":
     l = get_l()
     t_obs = np.matmul(s_real.T, l)
 
-    s_model = np.ones(shape=(settings.NX * settings.NY,), dtype=float)
-    err = 0.5*np.linalg.norm(
-        np.subtract(
-            np.matmul(s_model.T, l),
-            t_obs
-        )
+    sk = np.matmul(
+        np.linalg.inv(
+            np.add(
+                np.matmul(l.T, l),
+                np.multiply(2e-2, np.identity(settings.NX*settings.NY, dtype=float))
+            )
+        ),
+        np.matmul(l.T, t_obs)
     )
-    r = np.subtract(
-        np.matmul(s_model.T, l),
+    rk = np.subtract(
+        np.matmul(l, sk),
         t_obs
     )
-    alpha = ALPHA0
-    pk = -r
+    pk = -rk
+    err = 0.5*np.linalg.norm(rk)
     while err > EPSILON:
-        alpha = np.divide(
-            np.matmul(r.T, pk),
+        alphak = np.divide(
             np.matmul(
-                pk.T,
-                np.matmul(
-                    s.T,
-                    pk
-                )
-            )
-        )
-        s_model_new += np.multiply(alpha, pk)
-        rk = np.subtract(
-            np.matmul(s_model_new.T, l),
-            t_obs
-        )
-        betak = np.divide(
-            np.matmul(
-                ,
-                pk
+                rk.T,
+                rk
             ),
             np.matmul(
                 pk.T,
                 np.matmul(
-                    s.T,
+                    l,
                     pk
                 )
             )
         )
-        # gradk = grad(l, s_model, t_obs)
-        # betak = np.divide(
-        #     np.multiply(
-        #             np.matmul(s_model.T, pk_old),
-        #             np.matmul(s_model.T, gradk)
-        #     ),
-        #     np.sum(np.square(np.matmul(s_model.T, pk_old))),
-        # )
-        # pk = -gradk + np.multiply(betak, pk_old)
-        # alpha = -np.divide(
-        #     np.sum(np.matmul(gradk, pk)),
-        #     np.sum(np.square(np.matmul(s_model.T, pk))),
-        # )
-
-        # s_model += np.multiply(alpha, pk)
-        err = 0.5*np.linalg.norm(
-            np.subtract(
-                np.matmul(s_model.T, l),
-                t_obs
-            )
+        sk1 = np.add(sk, np.multiply(alphak, pk))
+        rk1 = np.add(rk, np.multiply(
+            alphak,
+            np.matmul(l, pk)
+        ))
+        betak1 = np.divide(
+            np.matmul(
+                rk1.T,
+                rk1
+            ),
+            np.matmul(
+                rk.T,
+                rk
+            ),
         )
-        # pk_old = pk
+        pk1 = np.add(-rk1, np.multiply(betak1, pk))
+        sk = sk1
+        rk = rk1
+        pk = pk1
+        new_err = 0.5*np.linalg.norm(np.subtract(
+            np.matmul(l, sk),
+            t_obs
+        ))
+        err = new_err
         print(err)
-
+    s_model = sk
     # visualize model
     map_model = s_model.reshape(settings.NX, settings.NY).T
     plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
     a = plt.colorbar()
     a.set_label('$v$')
-    plt.title("Model Velocity (SD)")
+    plt.title("Model Velocity (CG)")
     plt.xlabel("$x$")
     plt.ylabel("$y$")
     # plt.savefig("img/model_v_alpha{}.png".format(alpha))

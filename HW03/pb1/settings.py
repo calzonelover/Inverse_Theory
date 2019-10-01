@@ -8,4 +8,4 @@ N_SOURCE = 50
 N_RECEIVER = 50
 
 # ALPHAS = [1e-3, ]
-ALPHAS = np.logspace(-3, 3, num=5, base=10)
+ALPHAS = np.logspace(-3, 3, num=50, base=10)

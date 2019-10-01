@@ -9,7 +9,7 @@ import settings, ray
 
 # settings 
 ALPHA0 = 1e-2
-EPSILON = 1e6
+EPSILON = 1e4
 
 REPORT_LOG = {
     'alphas': [],
@@ -39,11 +39,9 @@ def get_l():
 
 def grad(l, s ,t):
     return 0.5*np.matmul(
-        (
-            np.subtract(
-                np.matmul(l, s),
-                t
-            )
+        np.subtract(
+            np.matmul(l, s),
+            t
         ).T,
         l
     )
@@ -57,7 +55,7 @@ if __name__ == "__main__":
         np.linalg.inv(
             np.add(
                 np.matmul(l.T, l),
-                np.multiply(0.1, np.identity(settings.NX*settings.NY, dtype=float))
+                np.multiply(2e-2, np.identity(settings.NX*settings.NY, dtype=float))
             )
         ),
         np.matmul(l.T, t_obs)
@@ -71,23 +69,26 @@ if __name__ == "__main__":
     )
     alpha = ALPHA0
     while err > EPSILON:
-        gradk = grad(l, s_model, t_obs)
-        pk = -gradk
+        pk = -grad(l, s_model, t_obs)
         if err < 1e3:
             pk = pk/np.linalg.norm(pk)
         alpha = np.divide(
             np.sum(np.square(pk)),
-            np.sum(np.square(np.matmul(l.T, pk))),
+            np.sum(np.square(np.matmul(l, pk))),
         )
 
         s_model += np.multiply(alpha, pk)
-        err = 0.5*np.linalg.norm(
+        new_err = 0.5*np.linalg.norm(
             np.subtract(
                 np.matmul(l, s_model),
                 t_obs
             )
         )
-        print(err)
+        if err < new_err:
+            print("start diverge!")
+            break
+        err = new_err
+        # print(err)
 
     # visualize model
     map_model = s_model.reshape(settings.NX, settings.NY).T
