@@ -6,7 +6,7 @@ import math
 import numpy as np
 import settings
 
-CUTOFF_INF = 1e6
+CUTOFF_D_LENGTH = 1e-8
 
 def ray_length(x1, y1, x2, y2):
     r_s = np.array([x1, y1])
@@ -19,9 +19,7 @@ def ray_length(x1, y1, x2, y2):
     for i_y in range(settings.NY):
         for i_x in range(settings.NX):
             g_i = i_x + settings.NX * i_y
-            if np.linalg.norm(D) < 1e-6: # check visibility
-                s_map[g_i] = 0
-            else:
+            if np.linalg.norm(D) > CUTOFF_D_LENGTH: # check visibility
                 x_min = settings.DX * i_x
                 x_max = settings.DX * (i_x + 1)
                 y_min = settings.DX * i_y
@@ -43,6 +41,4 @@ def ray_length(x1, y1, x2, y2):
                     ])
                     t.sort()
                     s_map[g_i] = t[2] - t[1]
-                else:
-                    s_map[g_i] = 0
     return s_map

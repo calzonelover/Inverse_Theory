@@ -9,7 +9,7 @@ import settings, ray
 
 # settings 
 ALPHA0 = 1e-2
-EPSILON = 1e4
+EPSILON = 1e5
 
 REPORT_LOG = {
     'alphas': [],
@@ -70,8 +70,6 @@ if __name__ == "__main__":
     alpha = ALPHA0
     while err > EPSILON:
         pk = -grad(l, s_model, t_obs)
-        if err < 1e3:
-            pk = pk/np.linalg.norm(pk)
         alpha = np.divide(
             np.sum(np.square(pk)),
             np.sum(np.square(np.matmul(l, pk))),
