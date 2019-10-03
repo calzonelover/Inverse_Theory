@@ -34,7 +34,8 @@ def get_l():
     return np.array(l)
 
 if __name__ == "__main__":
-    s_real = readraw(filename=settings.FILENAME)
+    v_real = readraw(filename=settings.FILENAME)
+    s_real = 1.0/v_real
     l = get_l()
     t_obs = np.matmul(l, s_real)
 
@@ -58,7 +59,7 @@ if __name__ == "__main__":
                 np.matmul(l, s_model)
         )))
         # visualize model
-        map_model = s_model.reshape(settings.NX, settings.NY).T
+        map_model = 1.0/s_model.reshape(settings.NX, settings.NY).T
         plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
         a = plt.colorbar()
         a.set_label('$v$')

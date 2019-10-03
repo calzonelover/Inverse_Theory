@@ -9,7 +9,7 @@ import settings, ray
 
 # settings 
 ALPHA0 = 1e-2
-EPSILON = 1e5
+EPSILON = 1e-6
 
 REPORT_LOG = {
     'alphas': [],
@@ -47,9 +47,10 @@ def grad(l, s ,t):
     )
 
 if __name__ == "__main__":
-    s_real = readraw(filename=settings.FILENAME)
+    v_real = readraw(filename=settings.FILENAME)
+    s_real = 1.0/v_real
     l = get_l()
-    t_obs = np.matmul(s_real.T, l)
+    t_obs = np.matmul(l, s_real)
 
     s_model = np.matmul(
         np.linalg.inv(
@@ -60,7 +61,6 @@ if __name__ == "__main__":
         ),
         np.matmul(l.T, t_obs)
     )
-    # s_model = 1500*np.ones(shape=(settings.NX * settings.NY,), dtype=float)
     err = 0.5*np.linalg.norm(
         np.subtract(
             np.matmul(l, s_model),
@@ -82,14 +82,14 @@ if __name__ == "__main__":
                 t_obs
             )
         )
-        if err < new_err:
-            print("start diverge!")
-            break
+        # if err < new_err:
+        #     print("start diverge!")
+        #     break
         err = new_err
-        # print(err)
+        print(err)
 
     # visualize model
-    map_model = s_model.reshape(settings.NX, settings.NY).T
+    map_model = 1.0/s_model.reshape(settings.NX, settings.NY).T
     plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
     a = plt.colorbar()
     a.set_label('$v$')

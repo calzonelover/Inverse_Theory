@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import settings, ray
 
 # settings 
-EPSILON = 1e4
+EPSILON = 1e-6
 
 REPORT_LOG = {
     'alphas': [],
@@ -46,19 +46,21 @@ def grad(l, s ,t):
     )
 
 if __name__ == "__main__":
-    s_real = readraw(filename=settings.FILENAME)
+    v_real = readraw(filename=settings.FILENAME)
+    s_real = 1.0/v_real
     l = get_l()
-    t_obs = np.matmul(s_real.T, l)
+    t_obs = np.matmul(l, s_real)
 
-    sk = np.matmul(
-        np.linalg.inv(
-            np.add(
-                np.matmul(l.T, l),
-                np.multiply(2e-2, np.identity(settings.NX*settings.NY, dtype=float))
-            )
-        ),
-        np.matmul(l.T, t_obs)
-    )
+    sk = 1e-3*np.ones(shape=l.shape[0])
+    # sk = np.matmul(
+    #     np.linalg.inv(
+    #         np.add(
+    #             np.matmul(l.T, l),
+    #             np.multiply(2e-2, np.identity(settings.NX*settings.NY, dtype=float))
+    #         )
+    #     ),
+    #     np.matmul(l.T, t_obs)
+    # )
     rk = np.subtract(
         np.matmul(l, sk),
         t_obs
@@ -80,8 +82,7 @@ if __name__ == "__main__":
             )
         )
         sk1 = np.add(sk, np.multiply(alphak, pk))
-        rk1 = np.add(rk, np.multiply(
-            alphak,
+        rk1 = np.add(rk, np.multiply(alphak,
             np.matmul(l, pk)
         ))
         betak1 = np.divide(
@@ -98,15 +99,16 @@ if __name__ == "__main__":
         sk = sk1
         rk = rk1
         pk = pk1
-        new_err = 0.5*np.linalg.norm(np.subtract(
-            np.matmul(l, sk),
-            t_obs
-        ))
-        err = new_err
+        # new_err = 0.5*np.linalg.norm(np.subtract(
+        #     np.matmul(l, sk),
+        #     t_obs
+        # ))
+        # err = new_err
+        err = np.linalg.norm(rk)
         print(err)
     s_model = sk
     # visualize model
-    map_model = s_model.reshape(settings.NX, settings.NY).T
+    map_model = 1.0/s_model.reshape(settings.NX, settings.NY).T
     plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
     a = plt.colorbar()
     a.set_label('$v$')
