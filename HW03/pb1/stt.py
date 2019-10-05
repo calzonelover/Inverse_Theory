@@ -31,18 +31,20 @@ def get_l():
             y_r_i = settings.DX/2 + r_j * dy_sr
             l_i = ray.ray_length(-10,y_s_i,1010,y_r_i)
             l.append(l_i)
-    return np.array(l)
+    return np.array(l).T
 
 if __name__ == "__main__":
     v_real = readraw(filename=settings.FILENAME)
     s_real = 1.0/v_real
     l = get_l()
-    t_obs = np.matmul(l, s_real)
+    t_obs = np.add(
+        np.matmul(l, s_real),
+        np.random.normal(loc=0.0, scale=1e-4, size=(settings.N_SOURCE*settings.N_RECEIVER))
+    )
 
-    # plt.imshow(l)
-    # plt.colorbar()
-    # plt.show()
-    # exit()
+    plt.imshow(l)
+    plt.colorbar()
+    plt.show()
 
     for i, alpha in enumerate(settings.ALPHAS):
         print(alpha)

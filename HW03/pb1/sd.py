@@ -8,8 +8,7 @@ import matplotlib.pyplot as plt
 import settings, ray
 
 # settings 
-ALPHA0 = 1e-2
-EPSILON = 1e-6
+EPSILON = 8.5e-4
 
 REPORT_LOG = {
     'alphas': [],
@@ -35,7 +34,7 @@ def get_l():
             y_r_i = settings.DX/2 + r_j * dy_sr
             l_i = ray.ray_length(-10,y_s_i,1010,y_r_i)
             l.append(l_i)
-    return np.array(l)
+    return np.array(l).T
 
 def grad(l, s ,t):
     return 0.5*np.matmul(
@@ -50,24 +49,27 @@ if __name__ == "__main__":
     v_real = readraw(filename=settings.FILENAME)
     s_real = 1.0/v_real
     l = get_l()
-    t_obs = np.matmul(l, s_real)
-
-    s_model = np.matmul(
-        np.linalg.inv(
-            np.add(
-                np.matmul(l.T, l),
-                np.multiply(2e-2, np.identity(settings.NX*settings.NY, dtype=float))
-            )
-        ),
-        np.matmul(l.T, t_obs)
+    t_obs = np.add(
+        np.matmul(l, s_real),
+        np.random.normal(loc=0.0, scale=1e-4, size=(settings.N_SOURCE*settings.N_RECEIVER))
     )
+
+    s_model = 1e-3*np.ones(shape=s_real.shape)# np.divide(np.random.normal(size=s_real.shape), 1700)
+    # s_model = np.matmul(
+    #     np.linalg.inv(
+    #         np.add(
+    #             np.matmul(l.T, l),
+    #             np.multiply(7e-2, np.identity(settings.NX*settings.NY, dtype=float))
+    #         )
+    #     ),
+    #     np.matmul(l.T, t_obs)
+    # )
     err = 0.5*np.linalg.norm(
         np.subtract(
             np.matmul(l, s_model),
             t_obs
         )
     )
-    alpha = ALPHA0
     while err > EPSILON:
         pk = -grad(l, s_model, t_obs)
         alpha = np.divide(
@@ -82,9 +84,6 @@ if __name__ == "__main__":
                 t_obs
             )
         )
-        # if err < new_err:
-        #     print("start diverge!")
-        #     break
         err = new_err
         print(err)
 

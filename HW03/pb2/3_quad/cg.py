@@ -61,8 +61,11 @@ def get_proper_alpha(x1_0, x2_0, pk):
                 alphak = alpha2
                 break
 
+            print(alpha1, alpha2)
             alpha0 = alpha1
             alpha1 = alpha2
+            print(alpha0, alpha1)
+            exit()
     return alphak
 
 if __name__ == '__main__':
