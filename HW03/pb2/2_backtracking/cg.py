@@ -63,11 +63,13 @@ if __name__ == '__main__':
         k += 1
         r = func(x1k1, x2k1)
         rs.append(r)
-        # print(r)
+        print(r)
     ## Visualize
     # contour
-    x, y = np.meshgrid(np.linspace(-5, 5, 1000),
-                   np.linspace(-5, 5, 1000))
+    x, y = np.meshgrid(
+        np.linspace(-5, 5, 1000),
+        np.linspace(-5, 5, 1000)
+    )
     plt.contourf(x, y, func(x, y), locator=matplotlib.ticker.LogLocator(), cmap='gnuplot')
     plt.colorbar()
     # point

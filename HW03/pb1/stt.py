@@ -39,7 +39,11 @@ if __name__ == "__main__":
     l = get_l()
     t_obs = np.matmul(l, s_real)
 
-    dy_sr = (settings.NY * settings.DX)/settings.N_SOURCE
+    # plt.imshow(l)
+    # plt.colorbar()
+    # plt.show()
+    # exit()
+
     for i, alpha in enumerate(settings.ALPHAS):
         print(alpha)
         s_model = np.matmul(

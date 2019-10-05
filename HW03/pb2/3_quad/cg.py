@@ -34,7 +34,10 @@ def get_proper_alpha(x1_0, x2_0, pk):
     alpha1_numerator = -np.multiply(phi_d0, alpha0**2)
     alpha1_denominator = 2.0*(phi_alpha0 - phi_0 - alpha0*phi_d0)
     alpha1 = alpha1_numerator/alpha1_denominator
-    if phi_alpha0 <= phi_0 + C * alpha1 * phi_d0:
+    x1_alpha1 = x1_0 + alpha1 * pk[0]
+    x2_alpha1 = x2_0 + alpha1 * pk[1]
+    phi_alpha1 = func(x1_alpha1, x2_alpha1)
+    if phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
         alphak = alpha1
     else:
         while True:
@@ -49,14 +52,12 @@ def get_proper_alpha(x1_0, x2_0, pk):
             phi_matrix = np.array([phi_alpha1 - phi_0 - alpha1*phi_d0, phi_alpha0 - phi_0 - alpha0*phi_d0])
             ab = (1.0/(alpha0**2*alpha1**2*(alpha1-alpha0)))*np.matmul(alpha_matrix, phi_matrix)
             a, b = ab[0], ab[1]
-            try:
-                alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
-            except ValueError:
-                # alpha2 = (-b)/(3*a)
-                alpha2 = alpha1/2
-                print("large!")
-            print(alpha1, alpha2)
-            if phi_alpha0 <= phi_0 + C * alpha2 * phi_d0:
+
+            alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
+            x1_alpha2 = x1_0 + alpha2 * pk[0]
+            x2_alpha2 = x2_0 + alpha2 * pk[1]
+            phi_alpha2 = func(x1_alpha2, x2_alpha2)
+            if phi_alpha2 <= phi_0 + C * alpha2 * phi_d0:
                 alphak = alpha2
                 break
 
@@ -76,8 +77,9 @@ if __name__ == '__main__':
     x1s.append(x1)
     x2s.append(x2)
 
-    pk = -1.0*grad_func(x1,x2)
-    while r > EPSILON:
+    gradk = grad_func(x1,x2)
+    pk = -1.0*gradk
+    while np.linalg.norm(gradk) > EPSILON:
         alphak = get_proper_alpha(x1s[k], x2s[k], pk)
         x1k1 = x1s[k] + alphak * pk[0]
         x2k1 = x2s[k] + alphak * pk[1]
@@ -93,11 +95,13 @@ if __name__ == '__main__':
         k += 1
         r = func(x1k1, x2k1)
         rs.append(r)
-        # print(r)
+        print(len(rs), r, np.linalg.norm(gradk))
     ## Visualize
     # contour
-    x, y = np.meshgrid(np.linspace(-5, 5, 1000),
-                   np.linspace(-5, 5, 1000))
+    x, y = np.meshgrid(
+        np.linspace(-5, 5, 1000),
+        np.linspace(-5, 5, 1000)
+    )
     plt.contourf(x, y, func(x, y), locator=matplotlib.ticker.LogLocator(), cmap='gnuplot')
     plt.colorbar()
     # point

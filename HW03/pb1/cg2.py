@@ -51,28 +51,23 @@ if __name__ == "__main__":
     l = get_l()
     t_obs = np.matmul(l, s_real)
 
-    sk = 1e-3*np.ones(shape=l.shape[0])
-    # sk = np.matmul(
-    #     np.linalg.inv(
-    #         np.add(
-    #             np.matmul(l.T, l),
-    #             np.multiply(2e-2, np.identity(settings.NX*settings.NY, dtype=float))
-    #         )
-    #     ),
-    #     np.matmul(l.T, t_obs)
-    # )
-    rk = np.subtract(
+    sk = np.matmul(
+        np.linalg.inv(
+            np.add(
+                np.matmul(l.T, l),
+                np.multiply(2e-2, np.identity(settings.NX*settings.NY, dtype=float))
+            )
+        ),
+        np.matmul(l.T, t_obs)
+    )
+    pk = -grad(l, sk, t_obs)
+    err = 0.5*np.linalg.norm(np.subtract(
         t_obs,
         np.matmul(l, sk),
-    )
-    pk = -rk
-    err = 0.5*np.linalg.norm(rk)
+    ))
     while err > EPSILON:
         alphak = np.divide(
-            np.matmul(
-                rk.T,
-                rk
-            ),
+            np.square(np.norm(pk)),
             np.matmul(
                 pk.T,
                 np.matmul(
