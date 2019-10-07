@@ -8,6 +8,7 @@ A, B = 1, 100
 C = 0.1
 EPSILON = 1e-2
 ALPHA0 = 1.0
+ALPHA_DECAYRATE = 0.8
 
 def func(x1, x2, a=A, b=B):
     return (a-x1)**2 + b*(x2-x1**2)**2
@@ -37,10 +38,11 @@ def get_proper_alpha(x1_0, x2_0, pk):
     x1_alpha1 = x1_0 + alpha1 * pk[0]
     x2_alpha1 = x2_0 + alpha1 * pk[1]
     phi_alpha1 = func(x1_alpha1, x2_alpha1)
-    if phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
+    if alpha1 > 1e-5 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
         alphak = alpha1
     else:
         while True:
+            print("cube")
             x1_alpha0 = x1_0 + alpha0 * pk[0]
             x2_alpha0 = x2_0 + alpha0 * pk[1]
             x1_alpha1 = x1_0 + alpha1 * pk[0]
@@ -61,11 +63,8 @@ def get_proper_alpha(x1_0, x2_0, pk):
                 alphak = alpha2
                 break
 
-            print(alpha1, alpha2)
             alpha0 = alpha1
             alpha1 = alpha2
-            print(alpha0, alpha1)
-            exit()
     return alphak
 
 if __name__ == '__main__':
@@ -80,9 +79,8 @@ if __name__ == '__main__':
     x1s.append(x1)
     x2s.append(x2)
 
-    gradk = grad_func(x1,x2)
-    pk = -1.0*gradk
-    while np.linalg.norm(gradk) > EPSILON:
+    pk = -1.0*grad_func(x1,x2)
+    while r > EPSILON:
         alphak = get_proper_alpha(x1s[k], x2s[k], pk)
         x1k1 = x1s[k] + alphak * pk[0]
         x2k1 = x2s[k] + alphak * pk[1]
@@ -90,7 +88,7 @@ if __name__ == '__main__':
         gradk = grad_func(x1s[k],x2s[k])
         gradk1 = grad_func(x1k1,x2k1)
         betak1 = np.matmul(gradk1.T, gradk1)/np.matmul(gradk.T, gradk)
-        pk = np.add(-1.0*gradk1, np.multiply(pk, betak1))
+        pk = np.add(np.negative(gradk1), np.multiply(pk, betak1))
 
         ps.append(pk)
         x1s.append(x1k1)
@@ -98,7 +96,7 @@ if __name__ == '__main__':
         k += 1
         r = func(x1k1, x2k1)
         rs.append(r)
-        print(len(rs), r, np.linalg.norm(gradk))
+        print(alphak, r)
     ## Visualize
     # contour
     x, y = np.meshgrid(

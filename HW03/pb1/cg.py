@@ -10,12 +10,6 @@ import settings, ray
 # settings 
 EPSILON = 8e-4
 
-REPORT_LOG = {
-    'alphas': [],
-    'norm_model': [],
-    'norm_res': [],
-}
-
 def readraw(filename):
     f = open(settings.FILENAME, "r")
     return np.fromfile(f, dtype=np.float32)
@@ -35,15 +29,6 @@ def get_l():
             l_i = ray.ray_length(-10,y_s_i,1010,y_r_i)
             l.append(l_i)
     return np.array(l).T
-
-def grad(l, s ,t):
-    return 0.5*np.matmul(
-        np.subtract(
-            np.matmul(l, s),
-            t
-        ).T,
-        l
-    )
 
 if __name__ == "__main__":
     v_real = readraw(filename=settings.FILENAME)
@@ -99,6 +84,7 @@ if __name__ == "__main__":
             ),
         )
         pk1 = np.add(-rk1, np.multiply(betak1, pk))
+
         sk = sk1
         rk = rk1
         pk = pk1

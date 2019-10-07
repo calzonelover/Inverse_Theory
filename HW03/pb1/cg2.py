@@ -7,14 +7,8 @@ import matplotlib.pyplot as plt
 
 import settings, ray
 
-# settings 
-EPSILON = 8e-4
-
-REPORT_LOG = {
-    'alphas': [],
-    'norm_model': [],
-    'norm_res': [],
-}
+# settings
+EPSILON = 8.5e-4
 
 def readraw(filename):
     f = open(settings.FILENAME, "r")
@@ -36,15 +30,6 @@ def get_l():
             l.append(l_i)
     return np.array(l).T
 
-def grad(l, s ,t):
-    return 0.5*np.matmul(
-        np.subtract(
-            np.matmul(l, s),
-            t
-        ).T,
-        l
-    )
-
 if __name__ == "__main__":
     v_real = readraw(filename=settings.FILENAME)
     s_real = 1.0/v_real
@@ -54,45 +39,83 @@ if __name__ == "__main__":
         np.random.normal(loc=0.0, scale=1e-4, size=(settings.N_SOURCE*settings.N_RECEIVER))
     )
 
-    # s_model = np.divide(np.random.normal(size=s_real.shape), 1700)
-    s_model = np.matmul(
-        np.linalg.inv(
-            np.add(
-                np.matmul(l.T, l),
-                np.multiply(7e-2, np.identity(settings.NX*settings.NY, dtype=float))
-            )
-        ),
-        np.matmul(l.T, t_obs)
+    mk = 1e-3*np.zeros(shape=s_real.shape) # s_model = np.divide(np.random.normal(size=s_real.shape), 1700)
+    # sk = np.matmul(
+    #     np.linalg.inv(
+    #         np.add(
+    #             np.matmul(l.T, l),
+    #             np.multiply(0.8, np.identity(settings.NX*settings.NY, dtype=float))
+    #         )
+    #     ),
+    #     np.matmul(l.T, t_obs)
+    # )
+    pk0 = np.zeros(shape=mk.shape)
+    betak = 0.0
+    sk = np.subtract(
+        t_obs,
+        np.matmul(l, mk)
     )
-    err = 0.5*np.linalg.norm(
-        np.subtract(
-            np.matmul(l, s_model),
-            t_obs
-        )
-    )
-    gradk = grad(l, s_model, t_obs)
-    pk = -gradk    
+    rk = np.matmul(l.T, sk)
+    err = 0.5*np.linalg.norm(np.subtract(
+        np.matmul(l, mk),
+        t_obs,
+    ))
+    k = 0
     while err > EPSILON:
-        alpha = -np.divide(
-            np.matmul(gradk.T, pk),
-            np.linalg.norm(np.matmul(l, pk)),
+        # if k != 0:
+        try:
+            betak = np.divide(
+                np.matmul(rk.T, rk),
+                np.matmul(rk0.T, rk0)
+            )
+        except NameError:
+            betak = 0.0
+        pk = np.add(
+            rk,
+            np.multiply(betak, pk0)
         )
-        s_model += np.multiply(alpha, pk)
-        new_err = 0.5*np.linalg.norm(
-            np.subtract(
-                np.matmul(l, s_model),
-                t_obs
+        alphak = np.divide(
+            np.linalg.norm(rk)**2,
+            np.matmul(
+                np.matmul(l, pk).T,
+                np.matmul(l, pk)
             )
         )
-        err = new_err
-        print(err)
+        mk1 = np.add(
+            mk,
+            np.multiply(alphak, pk)
+        )
+        sk1 = np.subtract(
+            sk,
+            np.multiply(
+                alphak,
+                np.matmul(l, pk)
+            )
+        )
+        rk1 = np.matmul(l.T, sk1)
+        
 
+        err = 0.5*np.linalg.norm(np.subtract(
+            np.matmul(l, mk),
+            t_obs,
+        ))
+        print(err)
+        k += 1
+        rk0 = rk
+        rk = rk1
+        pk0 = pk
+        mk0 = mk
+        mk = mk1
+        sk0 = sk
+        sk = sk1
+
+    s_model = mk
     # visualize model
     map_model = 1.0/s_model.reshape(settings.NX, settings.NY).T
     plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
     a = plt.colorbar()
     a.set_label('$v$')
-    plt.title("Model Velocity (SD)")
+    plt.title("Model Velocity (CG)")
     plt.xlabel("$x$")
     plt.ylabel("$y$")
     # plt.savefig("img/model_v_alpha{}.png".format(alpha))
