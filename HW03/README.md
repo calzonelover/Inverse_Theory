@@ -35,9 +35,9 @@
 #### Corner compare
 
 <p align="center">
-    <img src="pb1/real_v.png" width="300px" >
-    <img src="pb1/img/model_v_alpha024.png" width="300px" >
-    <img src="pb1/img/model_v_alpha015.png" width="300px" >
+    <img src="pb1/img/model_v_alpha024.png" width="250px" >
+    <img src="pb1/real_v.png" width="250px" >
+    <img src="pb1/img/model_v_alpha015.png" width="250px" >
     <br>
     <em>Real velocity map of the stone layer</em>
 </p>
