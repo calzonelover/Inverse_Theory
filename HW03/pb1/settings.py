@@ -9,3 +9,7 @@ N_RECEIVER = 50
 
 # ALPHAS = [1e-3, ]
 ALPHAS = np.logspace(-3, 3, num=50, base=10)
+
+# COLORBAR
+COLOR_VMAX = 2000
+COLOR_VMIN = 1500

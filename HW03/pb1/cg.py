@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 
 import settings, ray
 
-# settings 
-EPSILON = 8e-4
+# settings
+EPSILON = 1e-3
+LOG_ERRS = []
 
 def readraw(filename):
     f = open(settings.FILENAME, "r")
@@ -39,65 +40,81 @@ if __name__ == "__main__":
         np.random.normal(loc=0.0, scale=1e-4, size=(settings.N_SOURCE*settings.N_RECEIVER))
     )
 
-    sk = 1e-3*np.ones(shape=s_real.shape)
-    # sk = np.matmul(
-    #     np.linalg.inv(
-    #         np.add(
-    #             np.matmul(l.T, l),
-    #             np.multiply(7e-2, np.identity(settings.NX*settings.NY, dtype=float))
-    #         )
-    #     ),
-    #     np.matmul(l.T, t_obs)
-    # )
-    rk = np.subtract(
-        np.matmul(l, sk),
+    mk = 1e-3*np.zeros(shape=s_real.shape)
+    pk0 = np.zeros(shape=mk.shape)
+    sk = np.subtract(
         t_obs,
+        np.matmul(l, mk)
     )
-    pk = -rk
-    err = 0.5*np.linalg.norm(rk)
+    rk = np.matmul(l.T, sk)
+    err = 0.5*np.linalg.norm(np.subtract(
+        t_obs,
+        np.matmul(l, mk)
+    ))
     while err > EPSILON:
+        try:
+            betak = np.divide(
+                np.matmul(rk.T, rk),
+                np.matmul(rk0.T, rk0)
+            )
+        except NameError:
+            betak = 0.0
+        pk = np.add(
+            rk,
+            np.multiply(betak, pk0)
+        )
         alphak = np.divide(
+            np.linalg.norm(rk)**2,
             np.matmul(
-                rk.T,
-                rk
-            ),
-            np.matmul(
-                pk.T,
-                np.matmul(
-                    l,
-                    pk
-                )
+                np.matmul(l, pk).T,
+                np.matmul(l, pk)
             )
         )
-        sk1 = np.add(sk, np.multiply(alphak, pk))
-        rk1 = np.add(rk, np.multiply(alphak,
-            np.matmul(l, pk)
-        ))
-        betak1 = np.divide(
-            np.matmul(
-                rk1.T,
-                rk1
-            ),
-            np.matmul(
-                rk.T,
-                rk
-            ),
+        mk1 = np.add(
+            mk,
+            np.multiply(alphak, pk)
         )
-        pk1 = np.add(-rk1, np.multiply(betak1, pk))
-
-        sk = sk1
-        rk = rk1
-        pk = pk1
-        err = np.linalg.norm(rk)
+        sk1 = np.subtract(
+            sk,
+            np.multiply(
+                alphak,
+                np.matmul(l, pk)
+            )
+        )
+        rk1 = np.matmul(l.T, sk1)
+        
+        err = 0.5*np.linalg.norm(np.subtract(
+            np.matmul(l, mk),
+            t_obs,
+        ))
+        LOG_ERRS.append(err)
         print(err)
-    s_model = sk
+        pk0 = pk
+        mk0 = mk
+        mk = mk1
+        sk0 = sk
+        sk = sk1
+        rk0 = rk
+        rk = rk1
+
+    s_model = mk
     # visualize model
     map_model = 1.0/s_model.reshape(settings.NX, settings.NY).T
-    plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
+    plt.imshow(
+        map_model, cmap='jet',
+        extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],
+        vmin=settings.COLOR_VMIN, vmax=settings.COLOR_VMAX,
+    )
     a = plt.colorbar()
     a.set_label('$v$')
-    plt.title("Model Velocity (CG)")
+    plt.title("Model Velocity (CGLS, $\epsilon$~{})".format(EPSILON))
     plt.xlabel("$x$")
     plt.ylabel("$y$")
-    # plt.savefig("img/model_v_alpha{}.png".format(alpha))
-    plt.show()
+    plt.savefig("v_cg.png")
+    # plt.show()
+    plt.clf()
+    plt.plot(LOG_ERRS)
+    plt.ylabel("$||t_{pbs}-ls_{model}||$")
+    plt.yscale("log")
+    plt.title("Decay of residue (CGLS)")
+    plt.savefig("cg_r.png")

@@ -42,10 +42,6 @@ if __name__ == "__main__":
         np.random.normal(loc=0.0, scale=1e-4, size=(settings.N_SOURCE*settings.N_RECEIVER))
     )
 
-    plt.imshow(l)
-    plt.colorbar()
-    plt.show()
-
     for i, alpha in enumerate(settings.ALPHAS):
         print(alpha)
         s_model = np.matmul(
@@ -66,7 +62,11 @@ if __name__ == "__main__":
         )))
         # visualize model
         map_model = 1.0/s_model.reshape(settings.NX, settings.NY).T
-        plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
+        plt.imshow(
+            map_model, cmap='jet',
+            extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],
+            vmin=settings.COLOR_VMIN, vmax=settings.COLOR_VMAX,    
+        )
         a = plt.colorbar()
         a.set_label('$v$')
         plt.title("Model Velocity (alpha = {:010.05f})".format(alpha))
@@ -89,7 +89,10 @@ if __name__ == "__main__":
 
     # visualize raw
     raw_map = readmap(filename=settings.FILENAME)
-    plt.imshow(raw_map, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
+    plt.imshow(
+        raw_map, cmap='jet',
+        extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],
+    )
     a = plt.colorbar()
     a.set_label('$v$')
     plt.title("Real Velocity")

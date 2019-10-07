@@ -8,13 +8,8 @@ import matplotlib.pyplot as plt
 import settings, ray
 
 # settings 
-EPSILON = 8.5e-4
-
-REPORT_LOG = {
-    'alphas': [],
-    'norm_model': [],
-    'norm_res': [],
-}
+EPSILON = 1e-3
+LOG_ERRS = []
 
 def readraw(filename):
     f = open(settings.FILENAME, "r")
@@ -54,16 +49,7 @@ if __name__ == "__main__":
         np.random.normal(loc=0.0, scale=1e-4, size=(settings.N_SOURCE*settings.N_RECEIVER))
     )
 
-    s_model = np.divide(np.random.normal(size=s_real.shape), 1700)
-    # s_model = np.matmul(
-    #     np.linalg.inv(
-    #         np.add(
-    #             np.matmul(l.T, l),
-    #             np.multiply(7e-2, np.identity(settings.NX*settings.NY, dtype=float))
-    #         )
-    #     ),
-    #     np.matmul(l.T, t_obs)
-    # )
+    s_model = np.multiply(1e-3, np.ones(shape=s_real.shape))
     err = 0.5*np.linalg.norm(
         np.subtract(
             np.matmul(l, s_model),
@@ -72,30 +58,35 @@ if __name__ == "__main__":
     )
     while err > EPSILON:
         pk = -grad(l, s_model, t_obs)
-
         alpha =  np.linalg.norm(pk)**2/np.linalg.norm(np.matmul(l, pk))**2
-        # alpha = np.divide(
-        #     np.sum(np.square(pk)),
-        #     np.sum(np.square(np.matmul(l, pk))),
-        # )
-
-        s_model += np.multiply(alpha, pk)
-        new_err = 0.5*np.linalg.norm(
+        s_model = np.add(s_model, np.multiply(alpha, pk))
+        
+        err = 0.5*np.linalg.norm(
             np.subtract(
                 np.matmul(l, s_model),
                 t_obs
             )
         )
-        err = new_err
+        LOG_ERRS.append(err)
         print(err)
 
     # visualize model
     map_model = 1.0/s_model.reshape(settings.NX, settings.NY).T
-    plt.imshow(map_model, cmap='jet', extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
+    plt.imshow(
+        map_model, cmap='jet',
+        extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],
+        vmin=settings.COLOR_VMIN, vmax=settings.COLOR_VMAX,
+    )
     a = plt.colorbar()
     a.set_label('$v$')
-    plt.title("Model Velocity (SD)")
+    plt.title("Model Velocity (SD, $\epsilon$~{})".format(EPSILON))
     plt.xlabel("$x$")
     plt.ylabel("$y$")
-    # plt.savefig("img/model_v_alpha{}.png".format(alpha))
-    plt.show()
+    plt.savefig("v_sd.png")
+    # plt.show()
+    plt.clf()
+    plt.plot(LOG_ERRS)
+    plt.ylabel("$||t_{pbs}-ls_{model}||$")
+    plt.yscale("log")
+    plt.title("Decay of residue (SD)")
+    plt.savefig("sd_r.png")
