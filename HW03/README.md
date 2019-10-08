@@ -55,6 +55,18 @@ Full source code could be found [here](pb1/ray.py)
 
 ### 1.1 Least Square with Tikhonov Regularization
 
+* Objective function is defined as
+
+<p align="center">
+<a href="https://www.codecogs.com/eqnedit.php?latex=J(s_{\text{model}},&space;\alpha)&space;=&space;||Ls_{\text{model}}-t_{\text{obs}}||^2&space;&plus;&space;\alpha&space;||s_{\text{model}}||^2" target="_blank"><img src="https://latex.codecogs.com/svg.latex?J(s_{\text{model}},&space;\alpha)&space;=&space;||Ls_{\text{model}}-t_{\text{obs}}||^2&space;&plus;&space;\alpha&space;||s_{\text{model}}||^2" title="J(s_{\text{model}}, \alpha) = ||Ls_{\text{model}}-t_{\text{obs}}||^2 + \alpha ||s_{\text{model}}||^2" /></a>
+</p>
+
+* Then the solution of least square must be
+
+<p align="center">
+<a href="https://www.codecogs.com/eqnedit.php?latex=s_{\text{model}}&space;(\alpha)&space;=&space;(L^TL&space;&plus;&space;\alpha&space;I)^{-1}L^Tt_{\text{obs}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?s_{\text{model}}&space;(\alpha)&space;=&space;(L^TL&space;&plus;&space;\alpha&space;I)^{-1}L^Tt_{\text{obs}}" title="s_{\text{model}} (\alpha) = (L^TL + \alpha I)^{-1}L^Tt_{\text{obs}}" /></a>
+</p>
+
 <p align="center">
     <img src="pb1/img/s.gif" width="500px" >
     <br>
