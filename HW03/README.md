@@ -2,6 +2,14 @@
 
 ## Problem 1: Tomography
 
+There are srouce-receiver pair which located left and right side of the image sequentially. The equation of the system is governed by
+
+<p align="center">
+<a href="https://www.codecogs.com/eqnedit.php?latex=t_{\text{obs}}&space;=&space;Ls_{\text{real}}&space;&plus;&space;\mathcal{N}(0,&space;10^{-4})" target="_blank"><img src="https://latex.codecogs.com/svg.latex?t_{\text{obs}}&space;=&space;Ls_{\text{real}}&space;&plus;&space;\mathcal{N}(0,&space;10^{-4})" title="t_{\text{obs}} = Ls_{\text{real}} + \mathcal{N}(0, 10^{-4})" /></a>
+</p>
+
+where the last term is the noise from measurement and s is defined from invere velocity.
+
 <p align="center">
     <img src="pb1/real_v.png" width="500px" >
     <br>
