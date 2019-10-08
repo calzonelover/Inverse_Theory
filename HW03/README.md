@@ -47,13 +47,13 @@ s_map[g_i] = t[2] - t[1]
 
 Full source code could be found [here](pb1/ray.py)
 
-### 1.1 Least Square with Tikhonov Regularization
-
 <p align="center">
     <img src="pb1/img/out.gif" width="500px" >
     <br>
     <em>Fix source and shifting receiver along y-axis</em>
 </p>
+
+### 1.1 Least Square with Tikhonov Regularization
 
 <p align="center">
     <img src="pb1/img/s.gif" width="500px" >
