@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import platform
 if platform.system() == "Darwin":
@@ -13,7 +14,11 @@ if __name__ == "__main__":
     for i_y in range(settings.N_RECEIVER):
         y = settings.DX + settings.DX * i_y
         one_ray_map = ray.ray_length(-10,10,1010,y).reshape(50, 50)
-        plt.imshow(one_ray_map, extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0])
+        plt.imshow(
+            one_ray_map,
+            extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],
+            vmin=0, vmax=math.sqrt(2)*settings.DX,
+        )
         a = plt.colorbar()
         a.set_label('Ray length (m)')
         plt.xlabel("$x$")
