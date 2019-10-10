@@ -5,8 +5,8 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-T = 30000
-T_DECAY = 0.9
+T = 300
+T_DECAY = 0.95
 T_STOP = 1e-2
 N_ACCEPTED_MAX = 30
 
@@ -54,6 +54,17 @@ def ackley(x, a=A, b=B, c=C):
         a + np.exp(1)
     )
 
+def check_bc(position):
+    if position[0] < XMIN:
+        position[0] = XMIN
+    if position[0] > XMAX:
+        position[0] = XMAX
+    if position[1] < YMIN:
+        position[1] = YMIN
+    if position[1] > YMAX:
+        position[1] = YMAX
+    return position
+
 if __name__ == "__main__":
     accepted_position = START_POSITION
     old_potential = ackley(accepted_position)
@@ -64,6 +75,7 @@ if __name__ == "__main__":
         while n < N_ACCEPTED_MAX:
             # x <- x + dx
             new_position = accepted_position + np.random.normal(loc=0.0, scale=1, size=2)
+            new_position = check_bc(new_position)
             # dE
             new_potential = ackley(new_position)
             diff_potential = new_potential - old_potential
