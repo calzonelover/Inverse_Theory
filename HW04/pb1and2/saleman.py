@@ -5,11 +5,11 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-MODE = "RANDOM" # "RANDOM"
-HOUSE = 100
+MODE = "CIRCLE" # "RANDOM"
+HOUSE = 30
 T = 30000
-T_DECAY = 0.95
-T_STOP = 1e-8
+T_DECAY = 0.75
+T_STOP = 1e-6
 N_ACCEPTED_MAX = 30
 
 KEEP_DISTANCE = []
@@ -20,7 +20,7 @@ if MODE == "CIRCLE":
     ])
 elif MODE == "RANDOM":
     REGION = np.array([
-        [np.random.uniform(1,-1), np.random.uniform(1,-1)] for i in range(HOUSE)
+        [np.random.uniform(0,1), np.random.uniform(0,1)] for i in range(HOUSE)
     ])
 
 def compute_path(sequence):
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     plt.xlabel('x')
     plt.ylabel('y')
 
-    plt.savefig('walking_path_0_{}.png'.format(MODE))
+    # plt.savefig('walking_path_0_{}.png'.format(MODE))
     plt.clf()
     ##
     t = T
@@ -90,17 +90,17 @@ if __name__ == "__main__":
     plt.plot(REGION[accepted_sequence[-1], 0], REGION[accepted_sequence[-1], 1], 'go', label="end")
     plt.legend()
 
-    plt.title('Saleman walking path')
+    plt.title('Saleman walking path (decay_rate={})'.format(T_DECAY))
     plt.xlabel('x')
     plt.ylabel('y')
 
-    plt.savefig('walking_path_{}.png'.format(MODE))
+    plt.savefig('img/walking_path_{}_{}.png'.format(MODE, T_DECAY))
     # plt.show()
 
     plt.clf()
     plt.plot(KEEP_DISTANCE)
-    plt.title('Distance over iteration')
+    plt.title('Distance over iteration (decay_rate={})'.format(T_DECAY))
     plt.xlabel('k')
     plt.ylabel('Distance')
-    plt.savefig('distance_{}.png'.format(MODE))
+    plt.savefig('img/distance_{}_{}.png'.format(MODE, T_DECAY))
     # plt.show()
