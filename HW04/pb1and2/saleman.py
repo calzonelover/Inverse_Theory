@@ -6,10 +6,11 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 MODE = "CIRCLE" # "RANDOM"
+DECAY_METHOD = "LINEAR" # "EXPO"
 HOUSE = 30
-T = 30000
-T_DECAY = 0.75
-T_STOP = 1e-6
+T = 300.0
+T_DECAY = 0.001
+T_STOP = 0.001
 N_ACCEPTED_MAX = 30
 
 KEEP_DISTANCE = []
@@ -77,7 +78,10 @@ if __name__ == "__main__":
                     n += 1
                     accepted_sequence = sequence
                     KEEP_DISTANCE.append(compute_path(accepted_sequence))
-        t *= T_DECAY
+        if DECAY_METHOD == "LINEAR":
+            t -= T_DECAY
+        elif DECAY_METHOD == "EXPO":
+            t *= T_DECAY
         n = 0
     print("End t = {}".format(t))
     # visulize
@@ -90,17 +94,17 @@ if __name__ == "__main__":
     plt.plot(REGION[accepted_sequence[-1], 0], REGION[accepted_sequence[-1], 1], 'go', label="end")
     plt.legend()
 
-    plt.title('Saleman walking path (decay_rate={})'.format(T_DECAY))
+    plt.title('Saleman walking path ({}, decay_rate={})'.format(DECAY_METHOD, T_DECAY))
     plt.xlabel('x')
     plt.ylabel('y')
 
-    plt.savefig('img/walking_path_{}_{}.png'.format(MODE, T_DECAY))
+    plt.savefig('img/walking_path_{}_{}_{}.png'.format(MODE, DECAY_METHOD, T_DECAY))
     # plt.show()
 
     plt.clf()
     plt.plot(KEEP_DISTANCE)
-    plt.title('Distance over iteration (decay_rate={})'.format(T_DECAY))
+    plt.title('Distance over iteration ({}, decay_rate={})'.format(DECAY_METHOD, T_DECAY))
     plt.xlabel('k')
     plt.ylabel('Distance')
-    plt.savefig('img/distance_{}_{}.png'.format(MODE, T_DECAY))
+    plt.savefig('img/distance_{}_{}_{}.png'.format(MODE, DECAY_METHOD, T_DECAY))
     # plt.show()
