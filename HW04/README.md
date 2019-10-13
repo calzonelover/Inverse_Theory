@@ -10,17 +10,26 @@ Optimize walking distance all over the region by using Simulated Annealing.
         * Else calculate accepted probability of the new state regarding to Boltzmann distribution
     * Repeat second step until the accept state reaching the cutoff that we difined with a temperature decay factor for the new iteration
 
+
+### Pb1 Circle
+```python
+HOUSE = 30
+```
+
+There are two anneling schedules that I perform an optimization
+
+#### 1) Exponential cooling scheme (ECS)
+
+where the the governing equation for temperature could be represent as
+
+T_new <- T_old * T_DECAY
+
 Hyper parameters
 ```python
 T = 30000
 T_DECAY = 0.95
 T_STOP = 1e-6
 N_ACCEPTED_MAX = 30
-```
-
-### Pb1 Circle
-```python
-HOUSE = 30
 ```
 
 <p align="center">
@@ -40,6 +49,52 @@ HOUSE = 30
     <br>
     <em>Optimized path</em>
 </p>
+
+Varying T_DECAY to observe the behavior of the system
+
+<p align="center">
+    <img src="pb1and2/img/distance_CIRCLE_0.85.png" width="400px" >
+    <img src="pb1and2/img/walking_path_CIRCLE_0.85.png" width="400px" >
+    <br>
+    <em>DECAY_RATE = 0.85</em>
+</p>
+
+<p align="center">
+    <img src="pb1and2/img/distance_CIRCLE_0.75.png" width="400px" >
+    <img src="pb1and2/img/walking_path_CIRCLE_0.75.png" width="400px" >
+    <br>
+    <em>DECAY_RATE = 0.75</em>
+</p>
+
+Since the minimum condition of DECAY_RATE could not be lower than 0.85 then 0.75 is the problem in principle but in practice it yield the same of 0.85 in this case. There are only on path that system could not solve if we set DECAY lower than 0.9.
+
+#### 2) Linear cooling scheme (LCS)
+
+where the the governing equation for temperature could be represent as
+
+T_new <- T_old - T_DECAY
+
+Hyper parameters
+```python
+T = 300.0
+T_DECAY = 0.01
+T_STOP = 0.02
+N_ACCEPTED_MAX = 30
+```
+
+<p align="center">
+    <img src="pb1and2/img/distance_CIRCLE_LINEAR_0.01.png" width="500px" >
+    <br>
+    <em>Sum distance over iterations</em>
+</p>
+
+<p align="center">
+    <img src="pb1and2/img/walking_path_CIRCLE_LINEAR_0.01.png" width="500px" >
+    <br>
+    <em>Optimized path</em>
+</p>
+
+It is obviously to see that the ECS converge much more faster than the linear cooling because the faster cooling down will make the system stable faster than the slower one as long as a cooling scheme satisfy convergence condition.
 
 ### Pb2 Uniform random location
 ```python
@@ -63,23 +118,6 @@ HOUSE = 100
     <br>
     <em>Optimized path</em>
 </p>
-
-#### Varying T_DECAY to observe the behavior of the system
-<p align="center">
-    <img src="pb1and2/img/distance_CIRCLE_0.85.png" width="400px" >
-    <img src="pb1and2/img/walking_path_CIRCLE_0.85.png" width="400px" >
-    <br>
-    <em>DECAY_RATE = 0.85</em>
-</p>
-
-<p align="center">
-    <img src="pb1and2/img/distance_CIRCLE_0.75.png" width="400px" >
-    <img src="pb1and2/img/walking_path_CIRCLE_0.75.png" width="400px" >
-    <br>
-    <em>DECAY_RATE = 0.75</em>
-</p>
-
-Since the minimum condition of DECAY_RATE could not be lower than 0.85 then 0.75 is the problem in principle but in practice it yield the same of 0.85 in this case. There are only on path that system could not solve if we set DECAY lower than 0.9.
 
 ## Minimize Ackley Function
 
@@ -143,6 +181,8 @@ STOP_VAL = 1e-4
     <br>
     <em>Reward over iterations</em>
 </p>
+
+The convention for stable state of mine is to assume that the best local reward and mean local rewards has similar value or ideally exactly the same state which means that every particle agree to stop at the global position that located in a set of the initial states.
 
 <p align="center">
     <img src="pb4/log/anim.gif" width="500px" >
