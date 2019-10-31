@@ -52,17 +52,21 @@ def get_travel_time(s, source_x, source_y, n_sweep):
         # quad 1
         for i_y in range(settings.NY):
             for i_x in range(settings.NX):
-                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], get_mean_t(i_y, i_x, s, T))
+                Tnew = get_mean_t(i_y, i_x, s, T)
+                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], Tnew)
         # quad 2
         for i_y in range(settings.NY):
             for i_x in range(settings.NX-1, -1, -1):
-                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], get_mean_t(i_y, i_x, s, T))
+                Tnew = get_mean_t(i_y, i_x, s, T)
+                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], Tnew)
         # quad 3
         for i_y in range(settings.NY-1, -1, -1):
             for i_x in range(settings.NX-1, -1, -1):
-                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], get_mean_t(i_y, i_x, s, T))
+                Tnew = get_mean_t(i_y, i_x, s, T)
+                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], Tnew)
         # quad 4
         for i_y in range(settings.NY-1, -1, -1):
             for i_x in range(settings.NX):
-                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], get_mean_t(i_y, i_x, s, T))
+                Tnew = get_mean_t(i_y, i_x, s, T)
+                T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], Tnew)
     return T
