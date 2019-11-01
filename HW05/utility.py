@@ -17,45 +17,40 @@ def readmap(filename):
 '''
 def get_mean_t(i_y, i_x, s, old_T):
     T_mean = None
-    old_T = old_T.reshape(settings.NY, settings.NX)
-    ### handling Boundary
-    if i_y > 0 and i_y < settings.NY-1 and i_x > 0 and i_x < settings.NX-1:
-        T_x_min = min(old_T[i_y, i_x-1], old_T[i_y, i_x+1])
-        T_y_min = min(old_T[i_y-1, i_x], old_T[i_y+1, i_x])
-    # # left
-    # elif i_x == 0 and i_y > 0 and i_y < settings.NY-1:
-    #     T_x_min = old_T[i_y*settings.NX+(i_x+1)]
-    #     T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
-    # # right
-    # elif i_x == settings.NX-1 and i_y > 0 and i_y < settings.NY-1:
-    #     T_x_min = old_T[i_y*settings.NX+(i_x-1)]
-    #     T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
-    # # bottom
-    # elif i_y == 0 and i_x > 0 and i_x < settings.NX-1:
-    #     T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
-    #     T_y_min = old_T[(i_y+1)*settings.NX+i_x]
-    # # top
-    # elif i_y == settings.NY-1 and i_x > 0 and i_x < settings.NX-1:
-    #     T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
-    #     T_y_min = old_T[(i_y-1)*settings.NX+i_x]
-    # # corner
-    # elif i_y == 0 and i_x == 0:
-    #     T_x_min = old_T[0*settings.NX + 1]
-    #     T_y_min = old_T[1*settings.NX + 0]
-    # elif i_y == 0 and i_x == settings.NX-1:
-    #     T_x_min = old_T[0*settings.NX + settings.NX-1]
-    #     T_y_min = old_T[1*settings.NX + settings.NX]
-    # elif i_y == settings.NY-1 and i_x == 0:
-    #     T_x_min = old_T[(settings.NY-1)*settings.NX + 1]
-    #     T_y_min = old_T[(settings.NY-2)*settings.NX + 0]
-    # elif i_y == settings.NY-1 and i_x == settings.NX-1:
-    #     T_x_min = old_T[(settings.NY-1)*settings.NX + settings.NX-1]
-    #     T_y_min = old_T[(settings.NY-2)*settings.NX + settings.NX-2]
+    ### bc
+    if i_x > 0 and i_x < settings.NX-1 and i_y > 0 and i_y < settings.NY-1:
+        T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
+        T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
+
+    elif i_x == 0 and i_y > 0 and i_y < settings.NY-1: # left
+        T_x_min = old_T[i_y*settings.NX + i_x+1]
+        T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
+    elif i_x == settings.NX-1 and i_y > 0 and i_y < settings.NY-1: # right
+        T_x_min = old_T[i_y*settings.NX + i_x-1]
+        T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
+
+    elif i_y == 0 and i_x > 0 and i_x < settings.NX-1: # bottom
+        T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
+        T_y_min = old_T[(i_y+1)*settings.NX+i_x]
+    elif i_y == settings.NY-1 and i_x > 0 and i_x < settings.NX-1: # top
+        T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
+        T_y_min = old_T[(i_y-1)*settings.NX+i_x]
+
+    elif i_x == 0 and i_y == 0: # lower-left corner:
+        T_x_min = old_T[i_y*settings.NX+i_x+1]
+        T_y_min = old_T[(i_y+1)*settings.NX+i_x]
+    elif i_x == settings.NX-1 and i_y == 0: # lower-right corner:
+        T_x_min = old_T[i_y*settings.NX+i_x-1]
+        T_y_min = old_T[(i_y+1)*settings.NX+i_x]
+    elif i_x == 0 and i_y == settings.NY-1: # upper-left corner:
+        T_x_min = old_T[i_y*settings.NX+i_x+1]
+        T_y_min = old_T[(i_y-1)*settings.NX+i_x]
+    elif i_x == settings.NX-1 and i_y == settings.NY-1: # upper-right corner:
+        T_x_min = old_T[i_y*settings.NX+i_x-1]
+        T_y_min = old_T[(i_y-1)*settings.NX+i_x]
     else:
-        T_x_min = 0.0
-        T_y_min = 0.0
-        # print('broke', i_y, i_x)
-    ### end hadnling boundary
+        raise IndexError('Travel time indices i_y:{}, i_x:{} could not satisfy any boundary condition'.format(i_y, i_x))
+        
     if abs(T_x_min - T_y_min) > s[i_y*settings.NX + i_x]*settings.DX:
         T_mean = min(T_x_min, T_y_min) + s[i_y*settings.NX + i_x]*settings.DX
     else:
