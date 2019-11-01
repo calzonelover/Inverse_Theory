@@ -17,21 +17,46 @@ def readmap(filename):
 '''
 def get_mean_t(i_y, i_x, s, old_T):
     T_mean = None
-    try:
-        T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
-    except IndexError:
-        try:
-            T_x_min = old_T[i_y*settings.NX+(i_x-1)]
-        except IndexError:
-            T_x_min = old_T[i_y*settings.NX+(i_x+1)]
-    try:
-        T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
-    except IndexError:
-        try:
-            T_y_min = old_T[(i_y-1)*settings.NX+i_x]
-        except IndexError:
-            T_y_min = old_T[(i_y+1)*settings.NX+i_x]
-    if abs(T_x_min - T_y_min) >= s[i_y*settings.NX + i_x]*settings.DX:
+    old_T = old_T.reshape(settings.NY, settings.NX)
+    ### handling Boundary
+    if i_y > 0 and i_y < settings.NY-1 and i_x > 0 and i_x < settings.NX-1:
+        T_x_min = min(old_T[i_y, i_x-1], old_T[i_y, i_x+1])
+        T_y_min = min(old_T[i_y-1, i_x], old_T[i_y+1, i_x])
+    # # left
+    # elif i_x == 0 and i_y > 0 and i_y < settings.NY-1:
+    #     T_x_min = old_T[i_y*settings.NX+(i_x+1)]
+    #     T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
+    # # right
+    # elif i_x == settings.NX-1 and i_y > 0 and i_y < settings.NY-1:
+    #     T_x_min = old_T[i_y*settings.NX+(i_x-1)]
+    #     T_y_min = min(old_T[(i_y-1)*settings.NX+i_x], old_T[(i_y+1)*settings.NX+i_x])
+    # # bottom
+    # elif i_y == 0 and i_x > 0 and i_x < settings.NX-1:
+    #     T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
+    #     T_y_min = old_T[(i_y+1)*settings.NX+i_x]
+    # # top
+    # elif i_y == settings.NY-1 and i_x > 0 and i_x < settings.NX-1:
+    #     T_x_min = min(old_T[i_y*settings.NX+(i_x-1)], old_T[i_y*settings.NX+(i_x+1)])
+    #     T_y_min = old_T[(i_y-1)*settings.NX+i_x]
+    # # corner
+    # elif i_y == 0 and i_x == 0:
+    #     T_x_min = old_T[0*settings.NX + 1]
+    #     T_y_min = old_T[1*settings.NX + 0]
+    # elif i_y == 0 and i_x == settings.NX-1:
+    #     T_x_min = old_T[0*settings.NX + settings.NX-1]
+    #     T_y_min = old_T[1*settings.NX + settings.NX]
+    # elif i_y == settings.NY-1 and i_x == 0:
+    #     T_x_min = old_T[(settings.NY-1)*settings.NX + 1]
+    #     T_y_min = old_T[(settings.NY-2)*settings.NX + 0]
+    # elif i_y == settings.NY-1 and i_x == settings.NX-1:
+    #     T_x_min = old_T[(settings.NY-1)*settings.NX + settings.NX-1]
+    #     T_y_min = old_T[(settings.NY-2)*settings.NX + settings.NX-2]
+    else:
+        T_x_min = 0.0
+        T_y_min = 0.0
+        # print('broke', i_y, i_x)
+    ### end hadnling boundary
+    if abs(T_x_min - T_y_min) > s[i_y*settings.NX + i_x]*settings.DX:
         T_mean = min(T_x_min, T_y_min) + s[i_y*settings.NX + i_x]*settings.DX
     else:
         T_mean = 0.5*(
@@ -44,7 +69,7 @@ def get_mean_t(i_y, i_x, s, old_T):
     return T_mean
 
 def get_travel_time(s, source_x, source_y, n_sweep):
-    T = np.multiply(1e6, np.ones(s.shape))
+    T = np.multiply(1e6, np.ones(settings.NY*settings.NX))
     i_source_x = math.floor(source_x/settings.DX) + 1
     i_source_y = math.floor(source_y/settings.DX) + 1
     T[i_source_y*settings.NX + i_source_x] = 0.0
