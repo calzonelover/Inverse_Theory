@@ -100,15 +100,104 @@ def get_l(s, recalculate=False):
     x_step = [ _x_min + i*settings.STEP_SR for i in range(int((_x_max-_x_min)/settings.STEP_SR))]
 
     if recalculate:
+        print("Calculating curve ray length")
         l = []
         for x_s in x_step:
             for x_r in x_step:
-                print(x_s, x_r)
                 if x_s != x_r:
+                    print(x_s, x_r)
                     T = get_travel_time(s, x_s, 0.0)
                     l.append(ray.curved_ray(x_s, 0.0, x_r, 0.0, T))
-        _L = np.array(l).T
+        _L = np.array(l)
+        print("Finished ray tracing")
         np.savez('cache.npz', L=_L)
+        print("save to cache file")
     else:
         _L = np.load('cache.npz')['L']
+        print("Ray path (L) has been loaded from the cache file!")
     return _L
+
+'''
+Optimization
+'''
+def get_r(t_obs, s_model, L):
+    return np.square(np.linalg.norm(np.subtract(
+        t_obs,
+        np.matmul(L, s_model)
+    )))
+
+def grad(t_obs, s_model, L):
+    return np.negative(np.matmul(
+        np.subtract(t_obs, np.matmul(L, s_model)).T,
+        L
+    ))
+
+'''
+line search
+'''
+def get_proper_alpha(t_obs, s0, L, pk, method='backtrack'):
+    if method == 'backtrack':
+        ALPHA0 = 1.0
+        C = 0.1
+        ALPHA_DECAYRATE = 0.8
+
+        alphak = ALPHA0
+        while True:
+            s1 = s0 + np.multiply(alphak, pk)
+            gradk = grad(t_obs, s1, L)
+            if get_r(t_obs, s1, L) <= get_r(t_obs, s0, L) + np.multiply(C * alphak, np.matmul(gradk.T, pk)):
+                break
+            alphak *= ALPHA_DECAYRATE
+        # alphak = ALPHA0
+        # while True:
+        #     x1k1 = x1_0 + alphak * pk[0]
+        #     x2k1 = x2_0 + alphak * pk[1]
+        #     gradk = grad_func(x1_0, x2_0)
+        #     if func(x1k1, x2k1) <= func(x1_0, x2_0) + C * alphak * np.matmul(gradk.T, pk):
+        #         break
+        #     alphak *= ALPHA_DECAYRATE
+    # elif method == 'cube_quad':
+    #     alpha0 = ALPHA0
+    #     x1_alpha0 = x1_0 + alpha0 * pk[0]
+    #     x2_alpha0 = x2_0 + alpha0 * pk[1]
+    #     phi_0 = func(x1_0, x2_0)
+    #     grad_0 = grad_func(x1_0, x2_0)
+    #     phi_d0 = np.matmul(grad_0.T, pk)
+    #     phi_alpha0 = func(x1_alpha0, x2_alpha0)
+    #     # quad
+    #     alpha1_numerator = -np.multiply(phi_d0, alpha0**2)
+    #     alpha1_denominator = 2.0*(phi_alpha0 - phi_0 - alpha0*phi_d0)
+    #     alpha1 = alpha1_numerator/alpha1_denominator
+    #     x1_alpha1 = x1_0 + alpha1 * pk[0]
+    #     x2_alpha1 = x2_0 + alpha1 * pk[1]
+    #     phi_alpha1 = func(x1_alpha1, x2_alpha1)
+    #     if alpha1 > 1e-5 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
+    #         alphak = alpha1
+    #     else:
+    #         while True:
+    #             x1_alpha0 = x1_0 + alpha0 * pk[0]
+    #             x2_alpha0 = x2_0 + alpha0 * pk[1]
+    #             x1_alpha1 = x1_0 + alpha1 * pk[0]
+    #             x2_alpha1 = x2_0 + alpha1 * pk[1]
+    #             phi_alpha0 = func(x1_alpha0, x2_alpha0)
+    #             phi_alpha1 = func(x1_alpha1, x2_alpha1)
+
+    #             alpha_matrix = np.array([[alpha0**2, -alpha1**2], [-alpha0**3, alpha1**3]])
+    #             phi_matrix = np.array([phi_alpha1 - phi_0 - alpha1*phi_d0, phi_alpha0 - phi_0 - alpha0*phi_d0])
+    #             ab = (1.0/(alpha0**2*alpha1**2*(alpha1-alpha0)))*np.matmul(alpha_matrix, phi_matrix)
+    #             a, b = ab[0], ab[1]
+
+    #             alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
+    #             x1_alpha2 = x1_0 + alpha2 * pk[0]
+    #             x2_alpha2 = x2_0 + alpha2 * pk[1]
+    #             phi_alpha2 = func(x1_alpha2, x2_alpha2)
+    #             if phi_alpha2 <= phi_0 + C * alpha2 * phi_d0:
+    #                 alphak = alpha2
+    #                 break
+
+    #             alpha0 = alpha1
+    #             alpha1 = alpha2
+    else:
+        print('Please select the satisfiable method to find the step length')
+        exit()
+    return alphak
