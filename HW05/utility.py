@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import platform
-import settings
+import settings, ray
 
 def readraw(filename):
     f = open(settings.FILENAME, "r")
@@ -63,12 +63,13 @@ def get_mean_t(i_y, i_x, s, old_T):
         )
     return T_mean
 
-def get_travel_time(s, source_x, source_y, n_sweep):
+def get_travel_time(s, source_x, source_y, n_sweep=settings.N_SWEEP):
     T = np.multiply(1e6, np.ones(settings.NY*settings.NX))
-    i_source_x = math.floor(source_x/settings.DX) + 1
-    i_source_y = math.floor(source_y/settings.DX) + 1
+    i_source_x = math.floor(source_x/settings.DX)
+    i_source_y = math.floor(source_y/settings.DX)
     T[i_source_y*settings.NX + i_source_x] = 0.0
     for i_sweep in range(n_sweep):
+        old_T = T
         # quad 1
         for i_y in range(settings.NY):
             for i_x in range(settings.NX):
@@ -89,4 +90,25 @@ def get_travel_time(s, source_x, source_y, n_sweep):
             for i_x in range(settings.NX):
                 Tnew = get_mean_t(i_y, i_x, s, T)
                 T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], Tnew)
+        if abs(np.linalg.norm(old_T) - np.linalg.norm(T)) < settings.SWEEP_THRESHOLD:
+            break
     return T
+
+def get_l(s, recalculate=False):
+    _x_min = 2.0*settings.DX
+    _x_max = settings.NX * settings.DX - 2.0*settings.DX
+    x_step = [ _x_min + i*settings.STEP_SR for i in range(int((_x_max-_x_min)/settings.STEP_SR))]
+
+    if recalculate:
+        l = []
+        for x_s in x_step:
+            for x_r in x_step:
+                print(x_s, x_r)
+                if x_s != x_r:
+                    T = get_travel_time(s, x_s, 0.0)
+                    l.append(ray.curved_ray(x_s, 0.0, x_r, 0.0, T))
+        _L = np.array(l).T
+        np.savez('cache.npz', L=_L)
+    else:
+        _L = np.load('cache.npz')['L']
+    return _L
