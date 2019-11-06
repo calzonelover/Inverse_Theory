@@ -122,15 +122,16 @@ Optimization
 '''
 def get_r(t_obs, s_model, L):
     return np.square(np.linalg.norm(np.subtract(
-        t_obs,
-        np.matmul(L, s_model)
+        np.matmul(L, s_model),
+        t_obs
     )))
 
-def grad(t_obs, s_model, L):
-    return np.negative(np.matmul(
-        np.subtract(t_obs, np.matmul(L, s_model)).T,
-        L
-    ))
+def grad(t_obs, s_model, L, norm=True):
+    _grad = np.matmul(
+        np.subtract(np.matmul(L, s_model), t_obs).T,
+        L,
+    )
+    return np.divide(_grad, np.linalg.norm(_grad)) if norm else _grad
 
 '''
 line search

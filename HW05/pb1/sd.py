@@ -4,11 +4,11 @@ if platform.system() == "Darwin":
     import matplotlib
     matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter, uniform_filter
 
 import utility, settings
 
-K_STOP = 10
+K_STOP = 30
 LOG_RES = []
 
 def main():
@@ -18,8 +18,13 @@ def main():
     t_obs = np.matmul(L, s_real)
 
     # s_model = np.multiply(1.0/3.5e3, np.ones(shape=s_real.shape))
-    s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (5,5), 'maximum')
-    s_model = gaussian_filter(s_real_padded, sigma=5)[5:-5, 5:-5].reshape(settings.NX*settings.NY)
+
+    # s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (50,50), 'maximum')
+    # s_model = gaussian_filter(s_real_padded, sigma=50)[50:-50, 50:-50].reshape(settings.NX*settings.NY)
+
+    s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (100,100), 'edge')
+    s_model = uniform_filter(s_real_padded, size=60)[100:-100, 100:-100].reshape(settings.NX*settings.NY)
+
     k = 0
     res = utility.get_r(t_obs, s_model, L)
     LOG_RES.append(res)
@@ -40,15 +45,16 @@ def main():
     
     try:
         while k < K_STOP and res > 1e-2:
-            pk = -1.0 * utility.grad(t_obs, s_model, L)
+            pk = -1.0*utility.grad(t_obs, s_model, L)
             alphak = utility.get_proper_alpha(t_obs, s_model, L, pk)
+            print(alphak, min(pk), max(pk))
             s_model = np.add(
                 s_model,
                 np.multiply(alphak, pk)
             )
             res = utility.get_r(t_obs, s_model, L)
             LOG_RES.append(res)
-            print(k, res)
+            print(k, res, min(s_model), max(s_model))
             k += 1
     except KeyboardInterrupt:
         pass
