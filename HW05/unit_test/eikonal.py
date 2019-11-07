@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 import utility, settings
 
-SOURCE_X = 1800.0
-SOURCE_Y = 0.0
+SOURCE_X = 4840.0
+SOURCE_Y = 40.0
 
 def main():
     v = utility.readraw(filename=settings.FILENAME)

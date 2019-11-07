@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 
 import utility, settings, ray
 
-SOURCE_X = 1800.0
-SOURCE_Y = 0.0
+SOURCE_X = 40.0
+SOURCE_Y = 2840.0
 
-RECEIVER_X = 8000.0
-RECEIVER_Y = 0.0
+RECEIVER_X = 40.0
+RECEIVER_Y = 60.0
 
 def main():
     v = utility.readraw(filename=settings.FILENAME)
