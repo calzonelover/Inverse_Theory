@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import utility, settings, ray
 
 SOURCE_X = 40.0
-SOURCE_Y = 2840.0
+SOURCE_Y = 40.0
 
-RECEIVER_X = 40.0
+RECEIVER_X = 8400.0
 RECEIVER_Y = 60.0
 
 def main():

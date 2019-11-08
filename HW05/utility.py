@@ -1,6 +1,8 @@
 import math
 import numpy as np
 import platform
+from scipy.ndimage import gaussian_filter, uniform_filter
+
 import settings, ray
 
 def readraw(filename):
@@ -94,23 +96,25 @@ def get_travel_time(s, source_x, source_y, n_sweep=settings.N_SWEEP):
             break
     return T
 
-def get_l(s, recalculate=False):
+def get_l(s, recalculate=True, is_save=False):
     _x_min = 2.0*settings.DX
     _x_max = settings.NX * settings.DX - 2.0*settings.DX
     x_step = [ _x_min + i*settings.STEP_SR for i in range(int((_x_max-_x_min)/settings.STEP_SR))]
 
     if recalculate:
-        print("Calculating curve ray length")
+        print("Calculating curve length")
         l = []
         for x_s in x_step:
             for x_r in x_step:
-                print(x_s, x_r)
-                T = get_travel_time(s, x_s, settings.FIX_S_Y)
-                l.append(ray.curved_ray(x_s, settings.FIX_S_Y, x_r, settings.FIX_R_Y, T))
+                if x_s != x_r:
+                    # print(x_s, x_r)
+                    T = get_travel_time(s, x_s, settings.FIX_S_Y)
+                    l.append(ray.curved_ray(x_s, settings.FIX_S_Y, x_r, settings.FIX_R_Y, T))
         _L = np.array(l)
         print("Finished ray tracing")
-        np.savez('cache.npz', L=_L)
-        print("save to cache file")
+        if is_save:
+            np.savez('cache.npz', L=_L)
+            print("save to cache file")
     else:
         _L = np.load('cache.npz')['L']
         print("Ray path (L) has been loaded from the cache file!")
@@ -132,50 +136,58 @@ def grad(t_obs, s_model, L, norm=True):
     )
     return np.divide(_grad, np.linalg.norm(_grad)) if norm else _grad
 
-def smooth_map(s_real, kernel_size=60, mode='gaussian', pad_model='edge'):
-    s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (kernel_size,kernel_size), pad_model)
+def smooth_map(s_real, kernel_size=(100, 100), mode='gaussian', pad_model='edge'):
     if mode == 'uniform':
-        s_model = uniform_filter(s_real_padded, size=kernel_size)[kernel_size:-kernel_size, kernel_size:-kernel_size].reshape(settings.NX*settings.NY)
+        s_model = uniform_filter(s_real.reshape(settings.NX, settings.NY).T, size=kernel_size).reshape(settings.NX*settings.NY)
     elif mode == 'gaussian':
-        s_model = gaussian_filter(s_real_padded, sigma=kernel_size)[kernel_size:-kernel_size, kernel_size:-kernel_size].reshape(settings.NX*settings.NY)
+        if pad_model == 'zero':
+            s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (kernel_size,kernel_size), 'constant', constant_values=(0.0, 0.0))
+        else:
+            s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (kernel_size,kernel_size), pad_model)
+        s_model = gaussian_filter(s_real_padded, sigma=kernel_size)[kernel_size[0]:-kernel_size[0], kernel_size[1]:-kernel_size[1]].reshape(settings.NX*settings.NY)
     return s_model
 
 '''
 line search
 '''
-def get_proper_alpha(t_obs, s0, L, pk, method='backtrack'):
-    ALPHA0 = 1.0
+def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
+    ALPHA0 = 1e-4
     C = 0.1
     if method == 'backtrack':
         ALPHA_DECAYRATE = 0.8
         alphak = ALPHA0
         while True:
-            s1 = s0 + np.multiply(alphak, pk)
-            gradk = grad(t_obs, s1, L)
-            if get_r(t_obs, s1, L) <= get_r(t_obs, s0, L) + np.multiply(C * alphak, np.matmul(gradk.T, pk)):
+            s1 = np.add(s0, np.multiply(alphak, pk))
+            L1 = get_l(s1, recalculate=True)
+            gradk = grad(t_obs, s1, L1)
+            if get_r(t_obs, s1, L1) <= get_r(t_obs, s0, L0) + np.multiply(C * alphak, np.matmul(gradk.T, pk)):
                 break
             alphak *= ALPHA_DECAYRATE
     elif method == 'cube_quad':
         alpha0 = ALPHA0
         s_alpha0 = s0 + np.multiply(alpha0, pk)
-        phi_0 = get_r(t_obs, s0, L)
-        grad_0 = grad(t_obs, s0, L)
+        L_alpha0 = get_l(s_alpha0, recalculate=True)
+        phi_0 = get_r(t_obs, s0, L0)
+        grad_0 = grad(t_obs, s0, L0)
         phi_d0 = np.matmul(grad_0.T, pk)
-        phi_alpha0 = get_r(t_obs, s_alpha0, L)
+        phi_alpha0 = get_r(t_obs, s_alpha0, L_alpha0)
         # quad
         alpha1_numerator = -np.multiply(phi_d0, alpha0**2)
         alpha1_denominator = 2.0*(phi_alpha0 - phi_0 - alpha0*phi_d0)
         alpha1 = alpha1_numerator/alpha1_denominator
         s_alpha1 = s0 + np.multiply(alpha1, pk)
-        phi_alpha1 = get_r(t_obs, s_alpha1, L)
-        if alpha1 > 1e-5 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
+        L_alpha1 = get_l(s_alpha1, recalculate=True)
+        phi_alpha1 = get_r(t_obs, s_alpha1, L_alpha1)
+        if alpha1 > 1e-6 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
             alphak = alpha1
         else:
             while True:
                 s_alpha0 = s0 + np.multiply(alpha0, pk)
+                L_alpha0 = get_l(s_alpha0, recalculate=True)
                 s_alpha1 = s0 + np.multiply(alpha1, pk)
-                phi_alpha0 = get_r(t_obs, s_alpha0, L)
-                phi_alpha1 = get_r(t_obs, s_alpha1, L)
+                L_alpha1 = get_l(s_alpha1, recalculate=True)
+                phi_alpha0 = get_r(t_obs, s_alpha0, L_alpha0)
+                phi_alpha1 = get_r(t_obs, s_alpha1, L_alpha1)
 
                 alpha_matrix = np.array([[alpha0**2, -alpha1**2], [-alpha0**3, alpha1**3]])
                 phi_matrix = np.array([phi_alpha1 - phi_0 - alpha1*phi_d0, phi_alpha0 - phi_0 - alpha0*phi_d0])
@@ -184,7 +196,8 @@ def get_proper_alpha(t_obs, s0, L, pk, method='backtrack'):
 
                 alpha2 = (-b + math.sqrt(b**2-3*a*phi_d0))/(3*a)
                 s_alpha2 = s0 + np.multiply(alpha2, pk)
-                phi_alpha2 = get_r(t_obs, s_alpha2, L)
+                L_alpha2 = get_l(s_alpha2, recalculate=True)
+                phi_alpha2 = get_r(t_obs, s_alpha2, L_alpha2)
                 if phi_alpha2 <= phi_0 + C * alpha2 * phi_d0:
                     alphak = alpha2
                     break
