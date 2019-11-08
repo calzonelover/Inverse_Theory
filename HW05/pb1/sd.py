@@ -17,13 +17,7 @@ def main():
     L = utility.get_l(s_real, recalculate=False)
     t_obs = np.matmul(L, s_real)
 
-    # s_model = np.multiply(1.0/3.5e3, np.ones(shape=s_real.shape))
-
-    # s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (50,50), 'maximum')
-    # s_model = gaussian_filter(s_real_padded, sigma=50)[50:-50, 50:-50].reshape(settings.NX*settings.NY)
-
-    s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (100,100), 'edge')
-    s_model = uniform_filter(s_real_padded, size=60)[100:-100, 100:-100].reshape(settings.NX*settings.NY)
+    s_model = utility.smooth_map(s_real)
 
     k = 0
     res = utility.get_r(t_obs, s_model, L)
@@ -52,6 +46,7 @@ def main():
                 s_model,
                 np.multiply(alphak, pk)
             )
+            s_model = smooth_map(s_model)
             res = utility.get_r(t_obs, s_model, L)
             LOG_RES.append(res)
             print(k, res, min(s_model), max(s_model))

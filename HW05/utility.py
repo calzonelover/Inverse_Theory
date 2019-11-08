@@ -132,6 +132,14 @@ def grad(t_obs, s_model, L, norm=True):
     )
     return np.divide(_grad, np.linalg.norm(_grad)) if norm else _grad
 
+def smooth_map(s_real, kernel_size=60, mode='gaussian', pad_model='edge'):
+    s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (kernel_size,kernel_size), pad_model)
+    if mode == 'uniform':
+        s_model = uniform_filter(s_real_padded, size=kernel_size)[kernel_size:-kernel_size, kernel_size:-kernel_size].reshape(settings.NX*settings.NY)
+    elif mode == 'gaussian':
+        s_model = gaussian_filter(s_real_padded, sigma=kernel_size)[kernel_size:-kernel_size, kernel_size:-kernel_size].reshape(settings.NX*settings.NY)
+    return s_model
+
 '''
 line search
 '''
