@@ -45,7 +45,7 @@ def main():
                 s_model,
                 np.multiply(alphak, pk)
             )
-            s_model_new = smooth_map(s_model_new)
+            s_model_new = utility.smooth_map(s_model_new, kernel_size=10)
             gradk = utility.grad(t_obs, s_model, L)
             gradk1 = utility.grad(t_obs, s_model_new, L)
             betak1 = np.matmul(gradk1.T, gradk1)/np.matmul(gradk.T, gradk)
@@ -53,7 +53,7 @@ def main():
 
             print('alphak:{}, min(pk):{}, max(pk):{}'.format(alphak, min(pk), max(pk)))
             
-            res = utility.get_r(t_obs, s_model, L)
+            res = utility.get_r(t_obs, s_model_new, L)
             LOG_RES.append(res)
 
             print('k:{}, res:{}, min_s:{}, max_s:{}'.format(k, res, min(s_model), max(s_model)))

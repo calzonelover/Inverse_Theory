@@ -46,7 +46,7 @@ def main():
                 s_model,
                 np.multiply(alphak, pk)
             )
-            s_model = smooth_map(s_model)
+            s_model = utility.smooth_map(s_model, kernel_size=10)
             res = utility.get_r(t_obs, s_model, L)
             LOG_RES.append(res)
             print(k, res, min(s_model), max(s_model))
