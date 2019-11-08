@@ -14,7 +14,7 @@ ALPHAS = np.logspace(-3.0, 3.0, num=20, base=10)
 def main():
     v_real = utility.readraw(filename=settings.FILENAME)
     s_real = 1.0/v_real
-    L = utility.get_l(s_real, recalculate=False)
+    L = utility.get_l(s_real, recalculate=True)
     t_obs = np.matmul(L, s_real)
 
     s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (100,100), 'edge')
