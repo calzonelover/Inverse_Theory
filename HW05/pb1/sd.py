@@ -42,8 +42,8 @@ def main():
         while k < K_STOP and res > 1e-2:
             pk = np.negative(utility.grad(t_obs, s_model, L))
             pk = np.divide(pk, np.max(np.abs(pk)))
-            pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 10))
-            # pk = utility.smooth_map(pk, mode='gaussian', kernel_size=(5, 5), pad_model='zero')
+            pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 40))
+            # pk = utility.smooth_map(pk, mode='gaussian', kernel_size=(20, 20), pad_model='zero')
 
             plt.imshow(
                 pk.reshape(settings.NY, settings.NX), cmap='jet',
@@ -67,9 +67,8 @@ def main():
             LOG_RES.append(res)
             print(k, res, alphak, np.min(s_model), np.max(s_model))
             k += 1
-    except:
+    except KeyboardInterrupt:
         pass
-    
 
     plt.plot(LOG_RES)
     plt.xlabel('k')

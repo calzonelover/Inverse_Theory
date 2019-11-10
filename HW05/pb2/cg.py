@@ -51,10 +51,10 @@ def main():
             gradk = utility.grad(t_obs, s_model, L)
             gradk1 = utility.grad(t_obs, s_model_new, L_new)
             betak1 = np.matmul(gradk1.T, gradk1)/np.matmul(gradk.T, gradk)
-
             pk = np.add(np.negative(gradk1), np.multiply(betak1, pk))
+
             pk = np.divide(pk, np.max(np.abs(pk)))
-            pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 10))
+            pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 40))
             # pk = utility.smooth_map(pk, mode='gaussian', kernel_size=(10, 10), pad_model='zero')
 
             plt.imshow(
@@ -86,7 +86,6 @@ def main():
     plt.ylabel('Residual')
     plt.title("Residual over iterations")
     plt.savefig(os.path.join('pb2', 'res.png'))
-
     plt.clf()
 
     v_model = np.divide(1.0, s_model)

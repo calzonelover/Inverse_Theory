@@ -149,11 +149,18 @@ def get_l(s, recalculate=True, is_save=False):
 '''
 Optimization
 '''
-def get_r(t_obs, s_model, L):
-    return np.linalg.norm(np.subtract(
-        np.matmul(L, s_model),
-        t_obs
-    ))
+def get_r(t_obs, s_model, L, magnitude=True):
+    if magnitude:
+        r = np.linalg.norm(np.subtract(
+            np.matmul(L, s_model),
+            t_obs
+        ))
+    else:
+        r = np.subtract(
+            np.matmul(L, s_model),
+            t_obs
+        )
+    return r
 
 def grad(t_obs, s_model, L, norm=True):
     _grad = np.matmul(
@@ -167,9 +174,9 @@ def smooth_map(s_real, kernel_size=(100, 100), mode='gaussian', pad_model='edge'
         s_model = uniform_filter(s_real.reshape(settings.NX, settings.NY).T, size=kernel_size).reshape(settings.NX*settings.NY)
     elif mode == 'gaussian':
         if pad_model == 'zero':
-            s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (kernel_size,kernel_size), 'constant', constant_values=(0.0, 0.0))
+            s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, kernel_size, 'constant', constant_values=(0.0, 0.0))
         else:
-            s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, (kernel_size,kernel_size), pad_model)
+            s_real_padded = np.pad(s_real.reshape(settings.NX, settings.NY).T, kernel_size, pad_model)
         s_model = gaussian_filter(s_real_padded, sigma=kernel_size)[kernel_size[0]:-kernel_size[0], kernel_size[1]:-kernel_size[1]].reshape(settings.NX*settings.NY)
     return s_model
 
@@ -204,7 +211,7 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
         s_alpha1 = s0 + np.multiply(alpha1, pk)
         L_alpha1 = get_l(s_alpha1, recalculate=True)
         phi_alpha1 = get_r(t_obs, s_alpha1, L_alpha1)
-        if alpha1 > 1e-8 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
+        if alpha1 > 1e-6 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
             alphak = alpha1
         else:
             while True:
@@ -234,3 +241,11 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
         print('Method {} to find the step length does not support yet'.format(method))
         exit()
     return alphak
+'''
+    LM algorithm
+'''
+
+def get_jacobian(t_obs, s_model, pk):
+    _j = []
+    for j in range(t_obs.shape):
+        get_r(t_obs, s_model, L, magnitude=False)
