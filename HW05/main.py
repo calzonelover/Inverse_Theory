@@ -5,6 +5,6 @@ from pb2 import cg
 
 if __name__ == "__main__":
     sd.main()
-    cg.main()
+    # cg.main()
     # regularization.main()
-    # ray_path.main()
+    # eikonal.main()

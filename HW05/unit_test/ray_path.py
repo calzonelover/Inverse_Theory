@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import platform
 if platform.system() == "Darwin":
@@ -17,7 +18,9 @@ def main():
     v = utility.readraw(filename=settings.FILENAME)
     s = 1.0/v
     T = utility.get_travel_time(s, SOURCE_X, SOURCE_Y)
+    t_begin = time.time()
     L = ray.curved_ray(SOURCE_X, SOURCE_Y, RECEIVER_X, RECEIVER_Y, T)
+    print('Elapsed time for calculate one curve ray {0:.03f} s'.format(time.time() - t_begin))
     plt.imshow(
         L.reshape(settings.NY, settings.NX), cmap='jet',
         extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],

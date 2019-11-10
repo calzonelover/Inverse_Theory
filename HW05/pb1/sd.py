@@ -14,7 +14,7 @@ LOG_RES = []
 def main():
     v_real = utility.readraw(filename=settings.FILENAME)
     s_real = 1.0/v_real
-    L_real = utility.get_l(s_real, recalculate=False)
+    L_real = utility.get_l(s_real, recalculate=True)
     t_obs = np.matmul(L_real, s_real)
 
     s_model = utility.smooth_map(s_real, mode='uniform')
@@ -43,6 +43,7 @@ def main():
             pk = np.negative(utility.grad(t_obs, s_model, L))
             pk = np.divide(pk, np.max(np.abs(pk)))
             pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 10))
+            # pk = utility.smooth_map(pk, mode='gaussian', kernel_size=(5, 5), pad_model='zero')
 
             plt.imshow(
                 pk.reshape(settings.NY, settings.NX), cmap='jet',
@@ -66,7 +67,7 @@ def main():
             LOG_RES.append(res)
             print(k, res, alphak, np.min(s_model), np.max(s_model))
             k += 1
-    except KeyboardInterrupt:
+    except:
         pass
     
 
@@ -90,3 +91,4 @@ def main():
     plt.xlabel("$x$")
     plt.ylabel("$y$")
     plt.savefig(os.path.join('pb1', 'model_v.png'))
+    print('The process is fully finish')

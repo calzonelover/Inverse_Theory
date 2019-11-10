@@ -2,6 +2,7 @@ import math
 import numpy as np
 import platform
 from scipy.ndimage import gaussian_filter, uniform_filter
+import multiprocessing as mp
 
 import settings, ray
 
@@ -65,6 +66,10 @@ def get_mean_t(i_y, i_x, s, old_T):
         )
     return T_mean
 
+def get_t_new(i_y, i_x, s, T):
+    Tnew = get_mean_t(i_y, i_x, s, T)
+    return min(T[i_y*settings.NX + i_x], Tnew)
+
 def get_travel_time(s, source_x, source_y, n_sweep=settings.N_SWEEP):
     T = np.multiply(1e6, np.ones(settings.NY*settings.NX))
     i_source_x = math.floor(source_x/settings.DX)
@@ -73,10 +78,17 @@ def get_travel_time(s, source_x, source_y, n_sweep=settings.N_SWEEP):
     for i_sweep in range(n_sweep):
         old_T = T
         # quad 1
+        # if not settings.N_PROCESSES:
         for i_y in range(settings.NY):
             for i_x in range(settings.NX):
                 Tnew = get_mean_t(i_y, i_x, s, T)
                 T[i_y*settings.NX + i_x] = min(T[i_y*settings.NX + i_x], Tnew)
+        # else:
+        #     pool = mp.Pool(processes=settings.N_PROCESSES)
+        #     T = np.array([
+        #             pool.apply(get_t_new, args=(i_y, i_x, s, T))
+        #         for i_x in range(settings.NX) for i_y in range(settings.NY)
+        #     ])
         # quad 2
         for i_y in range(settings.NY):
             for i_x in range(settings.NX-1, -1, -1):
@@ -96,22 +108,36 @@ def get_travel_time(s, source_x, source_y, n_sweep=settings.N_SWEEP):
             break
     return T
 
+def get_quick_curved_ray(x_s, y_s, x_r, y_r, s):
+    T = get_travel_time(s, x_s, y_s)
+    return ray.curved_ray(x_s, y_s, x_r, y_r, T)
+
 def get_l(s, recalculate=True, is_save=False):
     _x_min = 2.0*settings.DX
     _x_max = settings.NX * settings.DX - 2.0*settings.DX
     x_step = [ _x_min + i*settings.STEP_SR for i in range(int((_x_max-_x_min)/settings.STEP_SR))]
 
     if recalculate:
-        print("Calculating curve length")
+        # print("Calculating curve length")
         l = []
-        for x_s in x_step:
-            for x_r in x_step:
-                if x_s != x_r:
-                    # print(x_s, x_r)
-                    T = get_travel_time(s, x_s, settings.FIX_S_Y)
-                    l.append(ray.curved_ray(x_s, settings.FIX_S_Y, x_r, settings.FIX_R_Y, T))
+        if not settings.is_parallel:
+            for x_s in x_step:
+                T = get_travel_time(s, x_s, settings.FIX_S_Y)
+                for x_r in x_step:
+                    if x_s != x_r:
+                        l.append(ray.curved_ray(x_s, settings.FIX_S_Y, x_r, settings.FIX_R_Y, T))
+        else:
+            pool = mp.Pool(mp.cpu_count())
+            for x_s in x_step: 
+                l.extend(
+                    pool.starmap(
+                        get_quick_curved_ray,
+                        [(x_s, settings.FIX_S_Y, x_r, settings.FIX_R_Y, s) for x_r in x_step]
+                    )
+                )
+            pool.close()
         _L = np.array(l)
-        print("Finished ray tracing")
+        # print("Finished ray tracing")
         if is_save:
             np.savez('cache.npz', L=_L)
             print("save to cache file")
@@ -154,7 +180,7 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
     ALPHA0 = 1e-4
     C = 0.1
     if method == 'backtrack':
-        ALPHA_DECAYRATE = 0.8
+        ALPHA_DECAYRATE = 0.5
         alphak = ALPHA0
         while True:
             s1 = np.add(s0, np.multiply(alphak, pk))
@@ -165,7 +191,7 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
             alphak *= ALPHA_DECAYRATE
     elif method == 'cube_quad':
         alpha0 = ALPHA0
-        s_alpha0 = s0 + np.multiply(alpha0, pk)
+        s_alpha0 = np.add(s0, np.multiply(alpha0, pk))
         L_alpha0 = get_l(s_alpha0, recalculate=True)
         phi_0 = get_r(t_obs, s0, L0)
         grad_0 = grad(t_obs, s0, L0)
@@ -178,13 +204,13 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
         s_alpha1 = s0 + np.multiply(alpha1, pk)
         L_alpha1 = get_l(s_alpha1, recalculate=True)
         phi_alpha1 = get_r(t_obs, s_alpha1, L_alpha1)
-        if alpha1 > 1e-6 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
+        if alpha1 > 1e-8 and phi_alpha1 <= phi_0 + C * alpha1 * phi_d0:
             alphak = alpha1
         else:
             while True:
-                s_alpha0 = s0 + np.multiply(alpha0, pk)
+                s_alpha0 = np.add(s0, np.multiply(alpha0, pk))
                 L_alpha0 = get_l(s_alpha0, recalculate=True)
-                s_alpha1 = s0 + np.multiply(alpha1, pk)
+                s_alpha1 = np.add(s0, np.multiply(alpha1, pk))
                 L_alpha1 = get_l(s_alpha1, recalculate=True)
                 phi_alpha0 = get_r(t_obs, s_alpha0, L_alpha0)
                 phi_alpha1 = get_r(t_obs, s_alpha1, L_alpha1)
