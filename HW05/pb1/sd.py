@@ -90,4 +90,4 @@ def main():
     plt.xlabel("$x$")
     plt.ylabel("$y$")
     plt.savefig(os.path.join('pb1', 'model_v.png'))
-    print('The process is fully finish')
+    print('The process SD is fully finish')
