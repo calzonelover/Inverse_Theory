@@ -16,6 +16,7 @@ FACTOR = 3
 if is_reduce_size:
     NX = int(NX/FACTOR)
     NY = int(NY/FACTOR)
+    DX = 20.0*FACTOR
 
 # COLORBAR
 COLOR_VMAX = 5800

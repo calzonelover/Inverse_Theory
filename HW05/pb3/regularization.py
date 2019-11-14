@@ -25,7 +25,7 @@ def main():
 
     v_real = np.divide(1.0, s_real)
     plt.imshow(
-        v_real.reshape(settings.NX, settings.NY), cmap='jet',
+        v_real.reshape(settings.NX, settings.NY).T, cmap='jet',
         extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],
         vmin=settings.COLOR_VMIN, vmax=settings.COLOR_VMAX,
     )
@@ -73,13 +73,13 @@ def main():
                 ),
                 np.matmul(L.T, r)
             ))
-            # pk = np.divide(pk, np.max(np.abs(pk)))
             pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 40))
 
             s_model = np.add(
                 s_model,
                 pk
             )
+            s_model = utility.prevent_negative_velocity(s_model) # fix negative value for slowness
             L = utility.get_l(s_model, recalculate=True)
             res = utility.get_r(t_obs, s_model, L)
             LOG_RES.append(res)

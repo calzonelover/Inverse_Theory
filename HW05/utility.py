@@ -12,7 +12,7 @@ def readraw(filename):
     if settings.is_reduce_size:
         a = np.fromfile(f, dtype=np.float32)
         a = a.reshape(461, 151)
-        a = resize(a, (settings.NY, settings.NX))
+        a = resize(a, (settings.NX, settings.NY))
         return a.reshape(settings.NX*settings.NY)
     return np.fromfile(f, dtype=np.float32)
 
@@ -174,6 +174,10 @@ def grad(t_obs, s_model, L, norm=True):
         L,
     )
     return np.divide(_grad, np.linalg.norm(_grad)) if norm else _grad
+
+def prevent_negative_velocity(s_model):
+    _func = np.vectorize(lambda x: x if x > 0.0 else 1e-5)
+    return _func(s_model)
 
 def smooth_map(s_real, kernel_size=(100, 100), mode='gaussian', pad_model='edge'):
     if settings.is_reduce_size:
