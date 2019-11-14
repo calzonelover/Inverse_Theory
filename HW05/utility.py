@@ -2,12 +2,18 @@ import math
 import numpy as np
 import platform
 from scipy.ndimage import gaussian_filter, uniform_filter
+from skimage.transform import resize
 import multiprocessing as mp
 
 import settings, ray
 
 def readraw(filename):
     f = open(settings.FILENAME, "r")
+    if settings.is_reduce_size:
+        a = np.fromfile(f, dtype=np.float32)
+        a = a.reshape(461, 151)
+        a = resize(a, (settings.NY, settings.NX))
+        return a.reshape(settings.NX*settings.NY)
     return np.fromfile(f, dtype=np.float32)
 
 def readmap(filename):
@@ -170,6 +176,8 @@ def grad(t_obs, s_model, L, norm=True):
     return np.divide(_grad, np.linalg.norm(_grad)) if norm else _grad
 
 def smooth_map(s_real, kernel_size=(100, 100), mode='gaussian', pad_model='edge'):
+    if settings.is_reduce_size:
+        kernel_size = (int(kernel_size[0]/settings.FACTOR), int(kernel_size[1]/settings.FACTOR))
     if mode == 'uniform':
         s_model = uniform_filter(s_real.reshape(settings.NX, settings.NY).T, size=kernel_size).reshape(settings.NX*settings.NY)
     elif mode == 'gaussian':

@@ -4,7 +4,7 @@ from pb2 import cg
 from pb3 import regularization
 
 if __name__ == "__main__":
-    sd.main()
+    # sd.main()
     # cg.main()
-    # regularization.main()
+    regularization.main()
     # eikonal.main()

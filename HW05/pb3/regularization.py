@@ -23,6 +23,20 @@ def main():
     L_real = utility.get_l(s_real, recalculate=True)
     t_obs = np.matmul(L_real, s_real)
 
+    v_real = np.divide(1.0, s_real)
+    plt.imshow(
+        v_real.reshape(settings.NX, settings.NY), cmap='jet',
+        extent=[0, settings.DX*settings.NX, settings.DX*settings.NY, 0],
+        vmin=settings.COLOR_VMIN, vmax=settings.COLOR_VMAX,
+    )
+    a = plt.colorbar()
+    a.set_label('$v$')
+    plt.title("Resized Real Velocity")
+    plt.xlabel("$x$")
+    plt.ylabel("$y$")
+    plt.savefig(os.path.join('pb3', 'model_v_resize_real.png'))
+    plt.clf()
+
     s_model0 = utility.smooth_map(s_real, mode='uniform')
     L0 = utility.get_l(s_model0, recalculate=True)
 
@@ -41,14 +55,13 @@ def main():
     plt.clf()
 
     for i_alpha, alpha in enumerate(ALPHAS):
-        print(alpha)
+        print("\n\n ALPHA: {}".format(alpha))
         s_model = s_model0
         L = L0
         LOG_RES = []
         dir_save = os.path.join('pb3', 'alpha%d'%i_alpha)
         if not os.path.exists(dir_save):
             os.makedirs(dir_save)
-        ## for k
         for k in range(K_STOP):
             r = utility.get_r(t_obs, s_model, L, magnitude=False)
             pk = np.negative(np.matmul(
@@ -83,7 +96,7 @@ def main():
             plt.savefig(os.path.join(dir_save, 'pk_k%d.png'%k))
             plt.clf()
 
-            print(alpha, k, res, np.min(s_model), np.max(s_model))
+            print(alpha, k, res, np.min(s_model), np.max(s_model), np.min(pk), np.max(pk))
         ## end for k
         REPORT_LOG['alphas'].append(alpha)
         REPORT_LOG['norm_model'].append(np.linalg.norm(s_model))
