@@ -10,7 +10,7 @@ from scipy.ndimage import gaussian_filter, uniform_filter
 import utility, settings
 
 K_STOP = 10
-ALPHAS = np.logspace(-3.0, 3.0, num=20, base=10)
+ALPHAS = np.logspace(-3.0, 3.0, num=12, base=10)
 REPORT_LOG = {
     'alphas': [],
     'norm_model': [],
@@ -79,7 +79,7 @@ def main():
                 s_model,
                 pk
             )
-            s_model = utility.prevent_negative_velocity(s_model) # fix negative value for slowness
+            s_model = utility.prevent_negative_velocity(s_model)
             L = utility.get_l(s_model, recalculate=True)
             res = utility.get_r(t_obs, s_model, L)
             LOG_RES.append(res)

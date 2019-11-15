@@ -176,7 +176,7 @@ def grad(t_obs, s_model, L, norm=True):
     return np.divide(_grad, np.linalg.norm(_grad)) if norm else _grad
 
 def prevent_negative_velocity(s_model):
-    _func = np.vectorize(lambda x: x if x > 0.0 else 1e-5)
+    _func = np.vectorize(lambda x: x if x > 1e-5 else 1e-5)
     return _func(s_model)
 
 def smooth_map(s_real, kernel_size=(100, 100), mode='gaussian', pad_model='edge'):

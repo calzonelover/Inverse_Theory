@@ -60,14 +60,8 @@ def get_source_receiver(is_separate=False):
     return sr_pairs
     
 
-def ray_length(x1, y1, x2, y2, is_fast_tracing=True):
-    r_s = np.array([x1, y1])
-    r_r = np.array([x2, y2])
-    D = np.subtract(r_r, r_s)
-    length_D = np.linalg.norm(D)
-    d = np.divide(D, length_D)
-    d_angle = math.atan(d[1]/d[0])
-
+def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
+    s_map = np.zeros(shape=(settings.NX*settings.NY))
     # reduce calculation time by scoping the possible square mesh
     if is_fast_tracing:
         i_x_min = math.floor(min(x1, x2)/settings.DX) - 1
@@ -81,46 +75,78 @@ def ray_length(x1, y1, x2, y2, is_fast_tracing=True):
     else:
         i_x_min, i_x_max = 0, settings.NX
         i_y_min, i_y_max = 0, settings.NY
+    if mode=='circle':
+        m_sr = (y2 - y1)/(x2 - x1)
+        c_sr = y1 - m_sr * x1
+        y_sr = lambda x: x * m_sr + c_sr
+        a = 1.0 + m_sr*m_sr
+        r = settings.DX/2.0
+        for i_y in range(i_y_min ,i_y_max):
+            for i_x in range(i_x_min ,i_x_max):
+                x_0 = settings.DX * i_x + r
+                y_0 = settings.DX * i_y + r
+                b = 2.0*m_sr*(c_sr - y_0) - 2.0*x_0
+                c = m_sr*m_sr*x_0*x_0 + r*r + (c_sr - y_0)*(c_sr - y_0)
+                in_sqrt = b*b - 4.0*a*c
+                if in_sqrt > 0:
+                    x_c_2 = (-b + math.sqrt(in_sqrt)) / (2.0*a)
+                    x_c_1 = (-b - math.sqrt(in_sqrt)) / (2.0*a)
+                    y_c_2 = y_sr(x_c_2)
+                    y_c_1 = y_sr(x_c_1)
 
-    s_map = np.zeros(shape=(settings.NX*settings.NY))
-    for i_y in range(i_y_min ,i_y_max):
-        for i_x in range(i_x_min ,i_x_max):
-            g_i = i_x + settings.NX * i_y
+                    g_i = i_x + settings.NX * i_y
+                    _dx = x_c_2 - x_c_1
+                    _dy = y_c_2 - y_c_1
+                    s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy)
+                    print(s_map[g_i])
+    elif mode=='square':
+        r_s = np.array([x1, y1])
+        r_r = np.array([x2, y2])
+        D = np.subtract(r_r, r_s)
+        length_D = np.linalg.norm(D)
+        d = np.divide(D, length_D)
+        d_angle = math.atan(d[1]/d[0])
 
-            x_min = settings.DX * i_x
-            x_max = settings.DX * (i_x + 1)
-            y_min = settings.DX * i_y
-            y_max = settings.DX * (i_y + 1)
+        for i_y in range(i_y_min ,i_y_max):
+            for i_x in range(i_x_min ,i_x_max):
+                g_i = i_x + settings.NX * i_y
 
-            x_min_r = x_min - r_s[0]
-            x_max_r = x_max - r_s[0]
-            y_min_r = y_min - r_s[1]
-            y_max_r = y_max - r_s[1]
+                x_min = settings.DX * i_x
+                x_max = settings.DX * (i_x + 1)
+                y_min = settings.DX * i_y
+                y_max = settings.DX * (i_y + 1)
 
-            angles = np.array([
-                math.atan(y_max_r/x_min_r), math.atan(y_max_r/x_max_r),
-                math.atan(y_min_r/x_min_r), math.atan(y_min_r/x_max_r)
-            ])
-            if d_angle >= min(angles) and d_angle <= max(angles):
-                t = np.array([
-                    (x_min - r_s[0])/d[0], (x_max - r_s[0])/d[0],
-                    (y_min - r_s[1])/d[1], (y_max - r_s[1])/d[1],
+                x_min_r = x_min - r_s[0]
+                x_max_r = x_max - r_s[0]
+                y_min_r = y_min - r_s[1]
+                y_max_r = y_max - r_s[1]
+
+                angles = np.array([
+                    math.atan(y_max_r/x_min_r), math.atan(y_max_r/x_max_r),
+                    math.atan(y_min_r/x_min_r), math.atan(y_min_r/x_max_r)
                 ])
-                t.sort()
-                # same block
-                if (r_s[0] > x_min and r_s[0] < x_max and r_s[1] > y_min and r_s[1] < y_max
-                    and r_r[0] > x_min and r_r[0] < x_max and r_r[1] > y_min and r_r[1] < y_max ):
-                # if t[0] < 0 and t[1] < 0 and t[2] > 0 and t[3] > 0:
-                    s_map[g_i] = length_D
-                # Not the same block
-                elif t[1] > 0 and t[2] > 0 and t[3] > 0:
-                    # far
-                    if t[0] > 0 and t[1] < length_D and t[2] > length_D:
-                        s_map[g_i] = t[2] - t[1]
-                    # near
-                    elif t[0] < 0 and t[2] < 2*settings.DX:
-                        if length_D < t[2] and length_D - t[1] > 0:
-                            s_map[g_i] = length_D - t[1]
-                        else:
+                if d_angle >= min(angles) and d_angle <= max(angles):
+                    t = np.array([
+                        (x_min - r_s[0])/d[0], (x_max - r_s[0])/d[0],
+                        (y_min - r_s[1])/d[1], (y_max - r_s[1])/d[1],
+                    ])
+                    t.sort()
+                    # same block
+                    if (r_s[0] > x_min and r_s[0] < x_max and r_s[1] > y_min and r_s[1] < y_max
+                        and r_r[0] > x_min and r_r[0] < x_max and r_r[1] > y_min and r_r[1] < y_max ):
+                    # if t[0] < 0 and t[1] < 0 and t[2] > 0 and t[3] > 0:
+                        s_map[g_i] = length_D
+                    # Not the same block
+                    elif t[1] > 0 and t[2] > 0 and t[3] > 0:
+                        # far
+                        if t[0] > 0 and t[1] < length_D and t[2] > length_D:
                             s_map[g_i] = t[2] - t[1]
+                        # near
+                        elif t[0] < 0 and t[2] < 2*settings.DX:
+                            if length_D < t[2] and length_D - t[1] > 0:
+                                s_map[g_i] = length_D - t[1]
+                            else:
+                                s_map[g_i] = t[2] - t[1]
+    else:
+        raise Exception('Mode {} ray tracing that you request is not available yet'.format(mode))
     return s_map
