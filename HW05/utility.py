@@ -203,6 +203,7 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
         alphak = ALPHA0
         while True:
             s1 = np.add(s0, np.multiply(alphak, pk))
+            s1 = prevent_negative_velocity(s1)
             L1 = get_l(s1, recalculate=True)
             gradk = grad(t_obs, s1, L1)
             if get_r(t_obs, s1, L1) <= get_r(t_obs, s0, L0) + np.multiply(C * alphak, np.matmul(gradk.T, pk)):
@@ -211,6 +212,7 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
     elif method == 'cube_quad':
         alpha0 = ALPHA0
         s_alpha0 = np.add(s0, np.multiply(alpha0, pk))
+        s_alpha0 = prevent_negative_velocity(s_alpha0)
         L_alpha0 = get_l(s_alpha0, recalculate=True)
         phi_0 = get_r(t_obs, s0, L0)
         grad_0 = grad(t_obs, s0, L0)
@@ -228,8 +230,10 @@ def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
         else:
             while True:
                 s_alpha0 = np.add(s0, np.multiply(alpha0, pk))
+                s_alpha0 = prevent_negative_velocity(s_alpha0)
                 L_alpha0 = get_l(s_alpha0, recalculate=True)
                 s_alpha1 = np.add(s0, np.multiply(alpha1, pk))
+                s_alpha1 = prevent_negative_velocity(s_alpha1)
                 L_alpha1 = get_l(s_alpha1, recalculate=True)
                 phi_alpha0 = get_r(t_obs, s_alpha0, L_alpha0)
                 phi_alpha1 = get_r(t_obs, s_alpha1, L_alpha1)
