@@ -127,7 +127,7 @@ def main():
     f_curve.write("alpha,norm_res,norm_model\n")
     for i in range(len(REPORT_LOG['norm_res'])):
         f_curve.write("{},{},{}\n".format(
-            REPORT_LOG['alphas'],
+            REPORT_LOG['alphas'][i],
             REPORT_LOG['norm_res'][i],
             REPORT_LOG['norm_model'][i])
         )

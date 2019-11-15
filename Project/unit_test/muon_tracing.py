@@ -11,12 +11,12 @@ import environment, utility, settings
 def main():
     pair_srs = utility.get_source_receiver()
     # Test ray tracing
-    for k, sr_pos in enumerate(pair_srs[2:4]):
+    for k, sr_pos in enumerate(pair_srs):
         print(sr_pos)
         s_pos = sr_pos['s_pos']
         r_pos = sr_pos['r_pos']
 
-        ray_map = utility.ray_length(s_pos['x'],s_pos['y'],r_pos['x'],r_pos['y'], is_fast_tracing=False)
+        ray_map = utility.ray_length(s_pos['x'],s_pos['y'],r_pos['x'],r_pos['y'], mode='circle', is_fast_tracing=False)
         plt.imshow(
             ray_map.reshape(settings.NY, settings.NX), cmap='jet',
             extent=[0, settings.DX*settings.NX, 0, settings.DX*settings.NY],

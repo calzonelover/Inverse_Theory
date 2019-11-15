@@ -85,8 +85,9 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
             for i_x in range(i_x_min ,i_x_max):
                 x_0 = settings.DX * i_x + r
                 y_0 = settings.DX * i_y + r
+                # print(x_0, y_0)
                 b = 2.0*m_sr*(c_sr - y_0) - 2.0*x_0
-                c = m_sr*m_sr*x_0*x_0 + r*r + (c_sr - y_0)*(c_sr - y_0)
+                c = x_0*x_0 - r*r + (c_sr - y_0)*(c_sr - y_0)
                 in_sqrt = b*b - 4.0*a*c
                 if in_sqrt > 0:
                     x_c_2 = (-b + math.sqrt(in_sqrt)) / (2.0*a)
@@ -98,8 +99,7 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     _dx = x_c_2 - x_c_1
                     _dy = y_c_2 - y_c_1
                     s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy)
-                    print(s_map[g_i])
-    elif mode=='square':
+    elif mode=='cube':
         r_s = np.array([x1, y1])
         r_r = np.array([x2, y2])
         D = np.subtract(r_r, r_s)
