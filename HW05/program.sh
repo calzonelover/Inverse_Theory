@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#SBATCH -J InvLM # Job name 
-#SBATCH -o log_InvLM.out
+#SBATCH -J InvCG # Job name 
+#SBATCH -o log_InvCG.out
 #SBATCH -N 1 # nodes
 #SBATCH -n 1
 #SBATCH --cpus-per-task=12

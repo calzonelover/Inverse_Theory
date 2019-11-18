@@ -62,7 +62,7 @@ def main():
                 s_model,
                 np.multiply(alphak, pk)
             )
-            s_model = utility.prevent_negative_velocity(s_model)
+            # s_model = utility.prevent_negative_velocity(s_model)
             L = utility.get_l(s_model, recalculate=True)
             res = utility.get_r(t_obs, s_model, L)
             LOG_RES.append(res)
@@ -91,4 +91,5 @@ def main():
     plt.xlabel("$x$")
     plt.ylabel("$y$")
     plt.savefig(os.path.join('pb1', 'model_v.png'))
+    plt.clf()
     print('The process SD is fully finish')

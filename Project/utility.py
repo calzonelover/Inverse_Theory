@@ -134,7 +134,6 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     # same block
                     if (r_s[0] > x_min and r_s[0] < x_max and r_s[1] > y_min and r_s[1] < y_max
                         and r_r[0] > x_min and r_r[0] < x_max and r_r[1] > y_min and r_r[1] < y_max ):
-                    # if t[0] < 0 and t[1] < 0 and t[2] > 0 and t[3] > 0:
                         s_map[g_i] = length_D
                     # Not the same block
                     elif t[1] > 0 and t[2] > 0 and t[3] > 0:

@@ -11,7 +11,7 @@ import environment, utility, settings
 def main():
     pair_srs = utility.get_source_receiver()
     # Test ray tracing
-    for k, sr_pos in enumerate(pair_srs):
+    for k, sr_pos in enumerate(pair_srs[0:2]):
         print(sr_pos)
         s_pos = sr_pos['s_pos']
         r_pos = sr_pos['r_pos']
