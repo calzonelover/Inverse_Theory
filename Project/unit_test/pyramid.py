@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import environment, utility, settings
 
-MODEL = 'initial' #  initial real
+MODEL = 'real' #  (initial, real)
 
 def main():
     model = environment.get_system(model=MODEL)
@@ -18,7 +18,7 @@ def main():
         origin='bottom left',
     )
     a = plt.colorbar()
-    a.set_label('Path length (m)')
+    a.set_label('1 / Path length ($m^{-1}$)')
     name_title = "Real" if MODEL == 'real' else "Initial_Model"
     plt.title(name_title)
     plt.xlabel("$x$")

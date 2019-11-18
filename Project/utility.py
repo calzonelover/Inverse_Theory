@@ -85,20 +85,34 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
             for i_x in range(i_x_min ,i_x_max):
                 x_0 = settings.DX * i_x + r
                 y_0 = settings.DX * i_y + r
-                # print(x_0, y_0)
-                b = 2.0*m_sr*(c_sr - y_0) - 2.0*x_0
-                c = x_0*x_0 - r*r + (c_sr - y_0)*(c_sr - y_0)
-                in_sqrt = b*b - 4.0*a*c
-                if in_sqrt > 0:
-                    x_c_2 = (-b + math.sqrt(in_sqrt)) / (2.0*a)
-                    x_c_1 = (-b - math.sqrt(in_sqrt)) / (2.0*a)
-                    y_c_2 = y_sr(x_c_2)
-                    y_c_1 = y_sr(x_c_1)
+                if y_0 > min(y1, y2) and y_0 < max(y1, y2) and x_0 > min(x1, x2) and x_0 < max(x1, x2):
+                    b = 2.0*m_sr*(c_sr - y_0) - 2.0*x_0
+                    c = x_0*x_0 - r*r + (c_sr - y_0)*(c_sr - y_0)
+                    in_sqrt = b*b - 4.0*a*c
+                    if in_sqrt > 0:
+                        x_c_2 = (-b + math.sqrt(in_sqrt)) / (2.0*a)
+                        x_c_1 = (-b - math.sqrt(in_sqrt)) / (2.0*a)
+                        y_c_2 = y_sr(x_c_2)
+                        y_c_1 = y_sr(x_c_1)
 
-                    g_i = i_x + settings.NX * i_y
-                    _dx = x_c_2 - x_c_1
-                    _dy = y_c_2 - y_c_1
-                    s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy)
+                        g_i = i_x + settings.NX * i_y
+                        _dx = x_c_2 - x_c_1
+                        _dy = y_c_2 - y_c_1
+                        s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy)
+                else:
+                    x_min = settings.DX * i_x
+                    x_max = settings.DX * (i_x + 1)
+                    y_min = settings.DX * i_y
+                    y_max = settings.DX * (i_y + 1)
+                    if x1 > x_min and x1 < x_max and y1 > y_min and y1 < y_max:
+                        r_s = np.array([x1, y1])
+                        r_r = np.array([x2, y2])
+                        D = np.subtract(r_r, r_s)
+                        length_D = np.linalg.norm(D)
+                        if x2 > x_min and x2 < x_max and y2 > y_min and y2 < y_max:
+                            s_map[g_i] = length_D
+                        else:
+                            pass
     elif mode=='cube':
         r_s = np.array([x1, y1])
         r_r = np.array([x2, y2])
@@ -136,16 +150,10 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                         and r_r[0] > x_min and r_r[0] < x_max and r_r[1] > y_min and r_r[1] < y_max ):
                         s_map[g_i] = length_D
                     # Not the same block
-                    elif t[1] > 0 and t[2] > 0 and t[3] > 0:
-                        # far
-                        if t[0] > 0 and t[1] < length_D and t[2] > length_D:
-                            s_map[g_i] = t[2] - t[1]
-                        # near
-                        elif t[0] < 0 and t[2] < 2*settings.DX:
-                            if length_D < t[2] and length_D - t[1] > 0:
-                                s_map[g_i] = length_D - t[1]
-                            else:
-                                s_map[g_i] = t[2] - t[1]
+                    elif t[0] > 0.0 and t[3] < length_D:
+                        s_map[g_i] = t[2]  - t[1]
+                    elif t[0] < 0.0 and t[1] > 0.0 and t[1] < length_D and t[2] > length_D:
+                        s_map[g_i] = length_D  - t[1]
     else:
         raise Exception('Mode {} ray tracing that you request is not available yet'.format(mode))
     return s_map

@@ -30,5 +30,5 @@ VOID_HEIGHT = 60
 SIDE_GAP = (G_W - PYRAMID_W)/2.0
 
 # MATERIALS
-LAMBDA_ROCK = 10.0 # https://www.intechopen.com/books/cosmic-rays/cosmic-ray-muons-as-penetrating-probes-to-explore-the-world-around-us
-LAMBDA_AIR = 1e-5
+LAMBDA_ROCK = 1.0/12.18 # Fix E_muon = 2 GeV eq.4 [K.M. Tanaka 2016]
+LAMBDA_AIR = 1.0/100 # https://arxiv.org/pdf/1208.1171.pdf
