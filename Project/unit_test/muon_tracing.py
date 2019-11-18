@@ -4,11 +4,13 @@ import platform
 if platform.system() == "Darwin":
     import matplotlib
     matplotlib.use('TkAgg')
+else:
+    import matplotlib
 import matplotlib.pyplot as plt
 
 import environment, utility, settings
 
-TRACING_MODE = 'circle' # circle, cube
+TRACING_MODE = 'cube' # circle, cube
 
 def main():
     pair_srs = utility.get_source_receiver()

@@ -76,17 +76,33 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
         i_x_min, i_x_max = 0, settings.NX
         i_y_min, i_y_max = 0, settings.NY
     if mode=='circle':
-        m_sr = (y2 - y1)/(x2 - x1)
-        c_sr = y1 - m_sr * x1
-        y_sr = lambda x: x * m_sr + c_sr
-        a = 1.0 + m_sr*m_sr
-        r = settings.DX/2.0
-        for i_y in range(i_y_min ,i_y_max):
+        # hor 
+        if x1 == x2:
+            i_x = math.floor(x1/settings.DX)
+            for i_y in range(i_y_min ,i_y_max):
+                y_0 = settings.DX * i_y + settings.DX/2.0
+                if y_0 > min(y1, y2) and y_0 < max(y1, y2):
+                    g_i = i_x + settings.NX * i_y
+                    s_map[g_i] = settings.DX
+        elif y1 == y2:
+            i_y = math.floor(y1/settings.DX)
             for i_x in range(i_x_min ,i_x_max):
-                g_i = i_x + settings.NX * i_y
-                x_0 = settings.DX * i_x + r
-                y_0 = settings.DX * i_y + r
-                if y_0 > min(y1, y2) and y_0 < max(y1, y2) and x_0 > min(x1, x2) and x_0 < max(x1, x2):
+                x_0 = settings.DX * i_x + settings.DX/2.0
+                if x_0 > min(x1, x2) and x_0 < max(x1, x2):
+                    g_i = i_x + settings.NX * i_y
+                    s_map[g_i] = settings.DX
+        else:
+            m_sr = (y2 - y1)/(x2 - x1)
+            c_sr = y1 - m_sr * x1
+            y_sr = lambda x: x * m_sr + c_sr
+            a = 1.0 + m_sr*m_sr
+            r = settings.DX/2.0
+            for i_y in range(i_y_min ,i_y_max):
+                for i_x in range(i_x_min ,i_x_max):
+                    g_i = i_x + settings.NX * i_y
+                    x_0 = settings.DX * i_x + r
+                    y_0 = settings.DX * i_y + r
+                    # if y_0 > min(y1, y2) and y_0 < max(y1, y2) and x_0 > min(x1, x2) and x_0 < max(x1, x2):
                     b = 2.0*m_sr*(c_sr - y_0) - 2.0*x_0
                     c = x_0*x_0 - r*r + (c_sr - y_0)*(c_sr - y_0)
                     in_sqrt = b*b - 4.0*a*c
@@ -100,40 +116,37 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                         _dy = y_c_2 - y_c_1
                         s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy)
                     else:
-                        print(m_sr)
-                        s_map[g_i] = -5.1
-                else:
-                    x_min = settings.DX * i_x
-                    x_max = settings.DX * (i_x + 1)
-                    y_min = settings.DX * i_y
-                    y_max = settings.DX * (i_y + 1)
-                    if x1 > x_min and x1 < x_max and y1 > y_min and y1 < y_max:
-                        r_s = np.array([x1, y1])
-                        r_r = np.array([x2, y2])
-                        D = np.subtract(r_r, r_s)
-                        length_D = np.linalg.norm(D)
-                        d = np.divide(D, length_D)
-                        d_angle = math.atan(d[1]/d[0])
-                        if x2 > x_min and x2 < x_max and y2 > y_min and y2 < y_max:
-                            s_map[g_i] = length_D
-                        else:
-                            b = 2.0*m_sr*(c_sr - y_0) - 2.0*x_0
-                            c = x_0*x_0 - r*r + (c_sr - y_0)*(c_sr - y_0)
-                            in_sqrt = b*b - 4.0*a*c
-                            if in_sqrt > 0:
-                                x_c_2 = (-b + math.sqrt(in_sqrt)) / (2.0*a)
-                                x_c_1 = (-b - math.sqrt(in_sqrt)) / (2.0*a)
-                                y_c_2 = y_sr(x_c_2)
-                                y_c_1 = y_sr(x_c_1)
+                        x_min = settings.DX * i_x
+                        x_max = settings.DX * (i_x + 1)
+                        y_min = settings.DX * i_y
+                        y_max = settings.DX * (i_y + 1)
+                        if x1 > x_min and x1 < x_max and y1 > y_min and y1 < y_max:
+                            r_s = np.array([x1, y1])
+                            r_r = np.array([x2, y2])
+                            D = np.subtract(r_r, r_s)
+                            length_D = np.linalg.norm(D)
+                            d = np.divide(D, length_D)
+                            d_angle = math.atan(d[1]/d[0])
+                            if x2 > x_min and x2 < x_max and y2 > y_min and y2 < y_max:
+                                s_map[g_i] = length_D
+                            else:
+                                b = 2.0*m_sr*(c_sr - y_0) - 2.0*x_0
+                                c = x_0*x_0 - r*r + (c_sr - y_0)*(c_sr - y_0)
+                                in_sqrt = b*b - 4.0*a*c
+                                if in_sqrt > 0:
+                                    x_c_2 = (-b + math.sqrt(in_sqrt)) / (2.0*a)
+                                    x_c_1 = (-b - math.sqrt(in_sqrt)) / (2.0*a)
+                                    y_c_2 = y_sr(x_c_2)
+                                    y_c_1 = y_sr(x_c_1)
 
-                                g_i = i_x + settings.NX * i_y
-                                _dx = x_c_2 - x_c_1
-                                _dy = y_c_2 - y_c_1
-                                dr_min = min([
-                                    math.sqrt((x_c_1-x1)**2 + (y_c_1-y1)**2),
-                                    math.sqrt((x_c_2-x1)**2 + (y_c_2-y1)**2)
-                                ])
-                                s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy) - dr_min
+                                    g_i = i_x + settings.NX * i_y
+                                    _dx = x_c_2 - x_c_1
+                                    _dy = y_c_2 - y_c_1
+                                    dr_min = min([
+                                        math.sqrt((x_c_1-x1)**2 + (y_c_1-y1)**2),
+                                        math.sqrt((x_c_2-x1)**2 + (y_c_2-y1)**2)
+                                    ])
+                                    s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy) - dr_min
     elif mode=='cube':
         r_s = np.array([x1, y1])
         r_r = np.array([x2, y2])
@@ -160,6 +173,7 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     math.atan(y_max_r/x_min_r), math.atan(y_max_r/x_max_r),
                     math.atan(y_min_r/x_min_r), math.atan(y_min_r/x_max_r)
                 ])
+                angles.sort()
                 if d_angle > min(angles) and d_angle < max(angles):
                     t = np.array([
                         (x_min - r_s[0])/d[0], (x_max - r_s[0])/d[0],
@@ -177,9 +191,8 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     # stencil
                     elif t[0] < 0.0 and t[1] > 0.0 and t[1] < length_D and t[2] > length_D:
                         s_map[g_i] = length_D  - t[1]
-                    # same axis
-                    # else:
-                    #     s_map[g_i] = 10.0
+                    else:
+                        print(t)
     else:
         raise Exception('Mode {} ray tracing that you request is not available yet'.format(mode))
     return s_map
