@@ -174,12 +174,18 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     math.atan(y_min_r/x_min_r), math.atan(y_min_r/x_max_r)
                 ])
                 angles.sort()
-                if d_angle > min(angles) and d_angle < max(angles):
-                    t = np.array([
-                        (x_min - r_s[0])/d[0], (x_max - r_s[0])/d[0],
-                        (y_min - r_s[1])/d[1], (y_max - r_s[1])/d[1],
-                    ])
-                    t.sort()
+                t = np.array([
+                    (x_min - r_s[0])/d[0], (x_max - r_s[0])/d[0],
+                    (y_min - r_s[1])/d[1], (y_max - r_s[1])/d[1],
+                ])
+                t.sort()
+                # same y-axis
+                _rs = [x2, x2 + length_D*math.cos(d_angle)]
+                _rr = [x2, x2 - length_D*math.cos(d_angle)]
+                if min(_rs) > x_min and max(_rs) < x_max and min(_rr) > x_min and max(_rr) < x_max:
+                    print('found same axis')
+                    s_map[g_i] = t[2]  - t[1]
+                elif d_angle > min(angles) and d_angle < max(angles):
                     # same block
                     if (r_s[0] > x_min and r_s[0] < x_max and r_s[1] > y_min and r_s[1] < y_max
                         and r_r[0] > x_min and r_r[0] < x_max and r_r[1] > y_min and r_r[1] < y_max ):
@@ -191,8 +197,6 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     # stencil
                     elif t[0] < 0.0 and t[1] > 0.0 and t[1] < length_D and t[2] > length_D:
                         s_map[g_i] = length_D  - t[1]
-                    else:
-                        print(t)
     else:
         raise Exception('Mode {} ray tracing that you request is not available yet'.format(mode))
     return s_map
