@@ -14,7 +14,7 @@ def deg_to_rad(deg):
 def rad_to_deg(rad):
     return rad * 180.0/math.pi
 
-def smooth_map(map, kernel_size=(3, 3), mode='gaussian'):
+def smooth_map(map, kernel_size=(2, 2), mode='gaussian'):
     if mode == 'uniform':
         out = uniform_filter(map.reshape(settings.NY, settings.NX), size=kernel_size).reshape(settings.NX*settings.NY)
     elif mode == 'gaussian':

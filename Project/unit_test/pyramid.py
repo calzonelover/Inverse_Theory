@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import environment, utility, settings
 
-MODEL = 'real' #  (initial, real)
+MODEL = 'initial' #  (initial, real)
 
 def main():
     model = environment.get_system(model=MODEL)
@@ -23,5 +23,5 @@ def main():
     plt.title(name_title)
     plt.xlabel("x (m)")
     plt.ylabel("y (m)")
-    plt.show()
-    # plt.savefig(os.path.join('unit_test', '{}.png'.format(MODEL)))
+    # plt.show()
+    plt.savefig(os.path.join('unit_test', '{}.png'.format(MODEL)))

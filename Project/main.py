@@ -5,5 +5,5 @@ if __name__ == '__main__':
     # pyramid.main()
     # muon_tracing.main()
     # grad_filter.main()
+    cg.main()
     sd.main()
-    # cg.main()
