@@ -1,15 +1,92 @@
+from scipy.ndimage import gaussian_filter, uniform_filter
 import multiprocessing as mp
 import numpy as np
 import math
 
 import settings
 
-
+'''
+    Transformation
+'''
 
 def deg_to_rad(deg):
     return deg * math.pi/180.0
 def rad_to_deg(rad):
     return rad * 180.0/math.pi
+
+def smooth_map(map, kernel_size=(3, 3), mode='gaussian'):
+    if mode == 'uniform':
+        out = uniform_filter(map.reshape(settings.NY, settings.NX), size=kernel_size).reshape(settings.NX*settings.NY)
+    elif mode == 'gaussian':
+        out = gaussian_filter(map.reshape(settings.NY, settings.NX), sigma=kernel_size).reshape(settings.NX*settings.NY)
+    return out
+
+'''
+    Governing equation
+'''
+def get_flux(zenith_angles, ray_paths, lamdba):
+    return np.multiply(
+        np.square(np.cos(zenith_angles)),
+        np.exp(np.negative(
+            np.matmul(ray_paths, lamdba)
+        ))
+    )
+
+'''
+    Optimization
+'''
+
+def prevent_negative(_model):
+    _func = np.vectorize(lambda x: x if x > 0.0 else 0.0)
+    return _func(_model)
+
+def get_r(zenith_angles, ray_paths, lamdba, I_obs, magnitude=True):
+    I_lambda = get_flux(zenith_angles, ray_paths, lamdba)
+    r = np.subtract(I_obs, I_lambda)
+    if magnitude:
+        return np.linalg.norm(r)
+    return r
+
+def gradient(zenith_angles, ray_paths, lamdba, I_obs):
+    I_lamdba = get_flux(zenith_angles, ray_paths, lamdba)
+    return np.matmul(
+        np.multiply(
+            np.subtract(I_obs, I_lamdba),
+            I_lamdba
+        ).T,
+        ray_paths
+    )
+
+def get_pk(zenith_angles, ray_paths, model_lambda, I_obs, model0_lambda):
+    pk = gradient(zenith_angles, ray_paths, model_lambda, I_obs)
+    pk = np.negative(np.divide(pk, np.linalg.norm(pk)))
+    if settings.SMOOTH_GRAD:
+        pk = smooth_map(pk)
+    if settings.FILTER_GRAD:
+        pk = gradient_filter(pk, model0_lambda)
+    return pk
+
+def gradient_filter(gradient, initial_lambda):
+    _func = np.vectorize(lambda x: 1 if x == settings.LAMBDA_ROCK else 0)
+    _kernel = _func(initial_lambda)
+    return np.multiply(gradient, _kernel)
+
+def get_proper_alpha(zenith_angles, ray_paths, lambda0, I_obs, pk, method='backtrack', ALPHA0=0.8, ALPHA_DECAYRATE=0.8):
+    C = 0.1
+    if method == 'backtrack':
+        alphak = ALPHA0
+        while True:
+            # lambda1 = prevent_negative(np.add(lambda0, np.multiply(alphak, pk)))
+            lambda1 = np.add(lambda0, np.multiply(alphak, pk))
+            gradk = gradient(zenith_angles, ray_paths, lambda1, I_obs)
+            if get_r(zenith_angles, ray_paths, lambda1, I_obs) <= get_r(zenith_angles, ray_paths, lambda0, I_obs) + np.multiply(C * alphak, np.matmul(gradk.T, pk)):
+                break
+            alphak *= ALPHA_DECAYRATE
+            # print(alphak)
+    else:
+        print('Method {} to find the step length does not support yet'.format(method))
+        exit()
+    return alphak
 
 '''
     Ray
@@ -18,7 +95,7 @@ def rad_to_deg(rad):
 def get_source_receiver(is_separate=False):
     source_positions = []
     r = settings.NY*settings.DX
-    theta_min_rad = math.acos((settings.PYRAMID_H/2.0 + settings.SIDE_GAP)/r)
+    theta_min_rad = 0.0# math.acos((settings.PYRAMID_H/2.0 + settings.SIDE_GAP)/r)
     dtheta_rad = (math.pi - 2.0*theta_min_rad)/(settings.N_SOURCE)
     for i_s in range(settings.N_SOURCE):
         theta_source_rad = theta_min_rad + i_s * dtheta_rad + dtheta_rad/2.0
@@ -45,17 +122,24 @@ def get_source_receiver(is_separate=False):
             'x': _x_offset_right + i_r*_x_step_outside + _x_step_outside/2.0,
             'y': 0.0
         })
+    zenith_angles = [
+        math.atan(abs((s_pos['x']-r_pos['x'])/(s_pos['y']-r_pos['y'])))
+        for r_pos in receiver_positions
+        for s_pos in source_positions
+    ]
     if is_separate:
         return {
             's_positions': source_positions,
-            'r_positions': receiver_positions
+            'r_positions': receiver_positions,
+            'zenith_angles': zenith_angles
         }
     sr_pairs = []
     for r_pos in receiver_positions:
         for s_pos in source_positions:
             sr_pairs.append({
                 's_pos': s_pos,
-                'r_pos': r_pos
+                'r_pos': r_pos,
+                'zenith_angle': math.atan(abs((s_pos['x']-r_pos['x'])/(s_pos['y']-r_pos['y'])))
             })
     return sr_pairs
     
@@ -111,10 +195,11 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                         x_c_1 = (-b - math.sqrt(in_sqrt)) / (2.0*a)
                         y_c_2 = y_sr(x_c_2)
                         y_c_1 = y_sr(x_c_1)
-
-                        _dx = x_c_2 - x_c_1
-                        _dy = y_c_2 - y_c_1
-                        s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy)
+                        if (x_c_2 >= min(x1,x2) and x_c_2 <= max(x1, x2) and x_c_1 >= min(x1,x2) and x_c_1 <= max(x1, x2)
+                            and y_c_2 >= min(y1,y2) and y_c_2 <= max(y1, y2) and y_c_1 >= min(y1,y2) and y_c_1 <= max(y1, y2)):
+                            _dx = x_c_2 - x_c_1
+                            _dy = y_c_2 - y_c_1
+                            s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy)
                     else:
                         x_min = settings.DX * i_x
                         x_max = settings.DX * (i_x + 1)
@@ -147,15 +232,14 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                                         math.sqrt((x_c_2-x1)**2 + (y_c_2-y1)**2)
                                     ])
                                     s_map[g_i] = math.sqrt(_dx*_dx + _dy*_dy) - dr_min
-    elif mode=='cube':
+    elif mode=='cube':              
+        ## old
         r_s = np.array([x1, y1])
         r_r = np.array([x2, y2])
         D = np.subtract(r_r, r_s)
         length_D = np.linalg.norm(D)
         d = np.divide(D, length_D)
-        # d_angle = math.acos(d[0]) if d[1] > 0.0 else 2.0*math.pi - math.acos(d[0])
         d_angle = math.atan(d[1]/d[0])
-        # d_angle = math.atan2(d[1], d[0])
 
         for i_y in range(i_y_min ,i_y_max):
             for i_x in range(i_x_min ,i_x_max):
@@ -171,24 +255,10 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                 y_min_r = y_min - r_s[1]
                 y_max_r = y_max - r_s[1]
 
-                # _dr1 = math.sqrt(x_min_r*x_min_r + y_max_r*y_max_r)
-                # _dr2 = math.sqrt(x_max_r*x_max_r + y_max_r*y_max_r)
-                # _dr3 = math.sqrt(x_min_r*x_min_r + y_min_r*y_min_r)
-                # _dr4 = math.sqrt(x_max_r*x_max_r + y_min_r*y_min_r)
-                # angles = np.array([
-                #     math.acos(x_min_r/_dr1) if y_max_r > 0.0 else 2.0*math.pi - math.acos(x_min_r/_dr1),
-                #     math.acos(x_max_r/_dr2) if y_max_r > 0.0 else 2.0*math.pi - math.acos(x_max_r/_dr2),
-                #     math.acos(x_min_r/_dr3) if y_min_r > 0.0 else 2.0*math.pi - math.acos(x_min_r/_dr3),
-                #     math.acos(x_max_r/_dr4) if y_min_r > 0.0 else 2.0*math.pi - math.acos(x_max_r/_dr4)
-                # ])
                 angles = np.array([
                     math.atan(y_max_r/x_min_r), math.atan(y_max_r/x_max_r),
                     math.atan(y_min_r/x_min_r), math.atan(y_min_r/x_max_r)
                 ])
-                # angles = np.array([
-                #     math.atan2(y_max_r, x_min_r), math.atan2(y_max_r, x_max_r),
-                #     math.atan2(y_min_r, x_min_r), math.atan2(y_min_r, x_max_r)
-                # ])
                 angles.sort()
 
                 t = np.array([
@@ -196,7 +266,6 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     (y_min - r_s[1])/d[1], (y_max - r_s[1])/d[1],
                 ])
                 t.sort()
-                # if abs(d_angle - min(angles)) < abs(max(angles) - min(angles)) and d_angle > min(angles) and d_angle < max(angles):
                 if d_angle <= max(angles) and d_angle >= min(angles):
                     ## same block
                     if (r_s[0] > x_min and r_s[0] < x_max and r_s[1] > y_min and r_s[1] < y_max
@@ -209,8 +278,25 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
                     # stencil
                     elif t[0] < 0.0 and t[1] > 0.0 and t[1] < length_D and t[2] > length_D and length_D < 2.5*settings.DX:
                         s_map[g_i] = length_D  - t[1]
-                else:
-                    s_map[g_i] = 10.0
     else:
         raise Exception('Mode {} ray tracing that you request is not available yet'.format(mode))
     return s_map
+
+
+'''
+    instant ray
+'''
+
+def get_ray_paths():
+    pair_srs = get_source_receiver()
+    _l = []
+    for pair_sr in pair_srs:
+        s_pos = pair_sr['s_pos']
+        r_pos = pair_sr['r_pos']
+        _l.append(
+            ray_length(
+                s_pos['x'],s_pos['y'],r_pos['x'],r_pos['y'],
+                mode=settings.TRACING_MODE
+            )
+        )
+    return np.array(_l)

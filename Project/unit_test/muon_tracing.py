@@ -10,13 +10,13 @@ import matplotlib.pyplot as plt
 
 import environment, utility, settings
 
-TRACING_MODE = 'cube' # circle, cube
+TRACING_MODE = 'circle' # circle, cube
 
 def main():
     pair_srs = utility.get_source_receiver()
     # Test ray tracing
     for k, sr_pos in enumerate(pair_srs):
-        print(k, sr_pos)
+        print(k, ', source: ', sr_pos['s_pos'], ', recv: ', sr_pos['r_pos'], ', zenith: ', utility.rad_to_deg(sr_pos['zenith_angle']))
         s_pos = sr_pos['s_pos']
         r_pos = sr_pos['r_pos']
 
@@ -28,8 +28,8 @@ def main():
         )
         a = plt.colorbar()
         a.set_label('Ray length (m)')
-        plt.xlabel("$x$")
-        plt.ylabel("$y$")
+        plt.xlabel("x (m)")
+        plt.ylabel("y (m)")
         plt.title("{0} Ray Tracing (src: ({1:.1f},{2:.1f}), rec: ({3:.1f},{4:.1f}))".format(TRACING_MODE,s_pos['x'],s_pos['y'],r_pos['x'],r_pos['y']))
         plt.savefig(os.path.join('unit_test', 'log_muon_tracing', "{0}_ray_{1:02d}.png".format(TRACING_MODE, k)))
         plt.clf()
