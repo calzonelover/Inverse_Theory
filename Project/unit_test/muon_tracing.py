@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 import environment, utility, settings
 
-TRACING_MODE = 'cube' # circle, cube
+TRACING_MODE = 'circle' # circle, cube
 
 def main():
     pair_srs = utility.get_source_receiver(is_separate=True)

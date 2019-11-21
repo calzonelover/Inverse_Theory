@@ -1,7 +1,6 @@
 import numpy as np
 
-# parallel
-is_parallel = True
+# RAY TRACING
 TRACING_MODE = 'cube' # circle, cube
 
 # OPTIMIZATION
