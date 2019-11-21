@@ -2,7 +2,7 @@ import numpy as np
 
 # parallel
 is_parallel = True
-TRACING_MODE = 'circle' # circle, cube
+TRACING_MODE = 'cube' # circle, cube
 
 # OPTIMIZATION
 SMOOTH_GRAD = True
@@ -19,8 +19,8 @@ G_H = NY*DX
 
 # DETECTOR
 N_SOURCE = 90 # minumim 10
-N_INSIDE_PYRAMID = 6 # 3
-N_OUTSIDE_PYRAMID_PER_SIDE = 3 # 2
+N_INSIDE_PYRAMID = 6 # min 3
+N_OUTSIDE_PYRAMID_PER_SIDE = 3 # min 2
 N_RECEIVER = N_INSIDE_PYRAMID + 2*N_OUTSIDE_PYRAMID_PER_SIDE
 
 # PYRAMID
@@ -39,4 +39,4 @@ SIDE_GAP = (G_W - PYRAMID_W)/2.0
 
 # MATERIALS
 LAMBDA_ROCK = 1.0/12.18 # Fix E_muon = 2 GeV eq.4 [K.M. Tanaka 2016]
-LAMBDA_AIR = 1.0/1e4# https://arxiv.org/pdf/1208.1171.pdf
+LAMBDA_AIR = 1.0/1e4 # https://arxiv.org/pdf/1208.1171.pdf

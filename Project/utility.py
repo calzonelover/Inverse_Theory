@@ -94,9 +94,9 @@ def get_proper_alpha(zenith_angles, ray_paths, lambda0, I_obs, pk, method='backt
 
 def get_source_receiver(is_separate=False):
     source_positions = []
-    r = settings.NY*settings.DX
-    theta_min_rad = 0.0# math.acos((settings.PYRAMID_H/2.0 + settings.SIDE_GAP)/r)
-    dtheta_rad = (math.pi - 2.0*theta_min_rad)/(settings.N_SOURCE)
+    r = 15000 # settings.NY*settings.DX
+    theta_min_rad = 0.0 # math.acos((settings.PYRAMID_H/2.0 + settings.SIDE_GAP)/r)
+    dtheta_rad = math.pi/settings.N_SOURCE# (math.pi - 2.0*theta_min_rad)/(settings.N_SOURCE)
     for i_s in range(settings.N_SOURCE):
         theta_source_rad = theta_min_rad + i_s * dtheta_rad + dtheta_rad/2.0
         source_positions.append({
@@ -239,45 +239,50 @@ def ray_length(x1, y1, x2, y2, mode='circle', is_fast_tracing=True):
         D = np.subtract(r_r, r_s)
         length_D = np.linalg.norm(D)
         d = np.divide(D, length_D)
-        d_angle = math.atan(d[1]/d[0])
+        d_angle = math.atan2(d[1], d[0])
+        # d_angle = math.atan(d[1]/d[0])
 
         for i_y in range(i_y_min ,i_y_max):
             for i_x in range(i_x_min ,i_x_max):
                 g_i = i_x + settings.NX * i_y
-
                 x_min = settings.DX * i_x
                 x_max = settings.DX * (i_x + 1)
                 y_min = settings.DX * i_y
                 y_max = settings.DX * (i_y + 1)
+                ## same block
+                if (r_s[0] > x_min and r_s[0] < x_max and r_s[1] > y_min and r_s[1] < y_max
+                    and r_r[0] > x_min and r_r[0] < x_max and r_r[1] > y_min and r_r[1] < y_max ):
+                    s_map[g_i] = length_D
+                ## not the same block
+                else:
+                    x_min_r = x_min - r_s[0]
+                    x_max_r = x_max - r_s[0]
+                    y_min_r = y_min - r_s[1]
+                    y_max_r = y_max - r_s[1]
 
-                x_min_r = x_min - r_s[0]
-                x_max_r = x_max - r_s[0]
-                y_min_r = y_min - r_s[1]
-                y_max_r = y_max - r_s[1]
-
-                angles = np.array([
-                    math.atan(y_max_r/x_min_r), math.atan(y_max_r/x_max_r),
-                    math.atan(y_min_r/x_min_r), math.atan(y_min_r/x_max_r)
-                ])
-                angles.sort()
-
-                t = np.array([
-                    (x_min - r_s[0])/d[0], (x_max - r_s[0])/d[0],
-                    (y_min - r_s[1])/d[1], (y_max - r_s[1])/d[1],
-                ])
-                t.sort()
-                if d_angle <= max(angles) and d_angle >= min(angles):
-                    ## same block
-                    if (r_s[0] > x_min and r_s[0] < x_max and r_s[1] > y_min and r_s[1] < y_max
-                        and r_r[0] > x_min and r_r[0] < x_max and r_r[1] > y_min and r_r[1] < y_max ):
-                        s_map[g_i] = length_D
-                    ## Not the same block
-                    # far
-                    elif t[0] > 0.0 and t[3] < length_D:
-                        s_map[g_i] = t[2]  - t[1]
-                    # stencil
-                    elif t[0] < 0.0 and t[1] > 0.0 and t[1] < length_D and t[2] > length_D and length_D < 2.5*settings.DX:
-                        s_map[g_i] = length_D  - t[1]
+                    angles = np.array([
+                        math.atan2(y_max_r, x_min_r), math.atan2(y_max_r, x_max_r),
+                        math.atan2(y_min_r, x_min_r), math.atan2(y_min_r, x_max_r)
+                    ])
+                    
+                    t_xmin = (x_min - r_s[0])/d[0]
+                    t_xmax = (x_max - r_s[0])/d[0]
+                    t_ymin = (y_min - r_s[1])/d[1]
+                    t_ymax = (y_max - r_s[1])/d[1]
+                    t = [
+                        t_xmin, t_xmax,
+                        t_ymin, t_ymax,
+                    ]
+                    t.sort()
+                    # old
+                    if d_angle <= max(angles) and d_angle >= min(angles):
+                        ## Not the same block
+                        # far
+                        if t[0] > 0.0 and t[3] < length_D:
+                            s_map[g_i] = t[2]  - t[1]
+                        # stencil
+                        elif t[0] < 0.0 and t[1] > 0.0 and t[1] < length_D and t[2] > length_D and length_D < 2.5*settings.DX:
+                            s_map[g_i] = length_D  - t[1]
     else:
         raise Exception('Mode {} ray tracing that you request is not available yet'.format(mode))
     return s_map

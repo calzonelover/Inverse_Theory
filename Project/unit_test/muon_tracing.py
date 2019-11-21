@@ -10,15 +10,14 @@ import matplotlib.pyplot as plt
 
 import environment, utility, settings
 
-TRACING_MODE = 'circle' # circle, cube
+TRACING_MODE = 'cube' # circle, cube
 
 def main():
-    pair_srs = utility.get_source_receiver()
+    pair_srs = utility.get_source_receiver(is_separate=True)
+    r_pos = pair_srs['r_positions'][1]
     # Test ray tracing
-    for k, sr_pos in enumerate(pair_srs):
-        print(k, ', source: ', sr_pos['s_pos'], ', recv: ', sr_pos['r_pos'], ', zenith: ', utility.rad_to_deg(sr_pos['zenith_angle']))
-        s_pos = sr_pos['s_pos']
-        r_pos = sr_pos['r_pos']
+    for k, s_pos in enumerate(pair_srs['s_positions']):
+        print(k, ', source: ', s_pos, ', recv: ', r_pos)
 
         ray_map = utility.ray_length(s_pos['x'],s_pos['y'],r_pos['x'],r_pos['y'], mode=TRACING_MODE, is_fast_tracing=False)
         plt.imshow(
