@@ -10,7 +10,7 @@ from scipy.ndimage import gaussian_filter, uniform_filter
 import utility, settings
 
 K_STOP = 10
-ALPHAS = np.logspace(-3.0, 3.0, num=12, base=10)
+ALPHAS = np.logspace(-6.0, 6.0, num=12, base=10)
 REPORT_LOG = {
     'alphas': [],
     'norm_model': [],

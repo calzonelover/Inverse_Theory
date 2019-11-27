@@ -5,7 +5,7 @@ from pb3 import regularization, analyze_L_curve
 
 if __name__ == "__main__":
     # sd.main()
-    cg.main()
+    # cg.main()
     # regularization.main()
     # eikonal.main()
-    # analyze_L_curve.main()
+    analyze_L_curve.main()
