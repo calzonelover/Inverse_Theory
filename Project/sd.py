@@ -16,8 +16,8 @@ def main():
     # settings 
     EPSILON = 1e-3
     MAX_ITER = 1200
-    ALPHA0 = 0.8 # 0.8 1e-2
-    ALPHA_DECAYRATE = 0.8 # 0.8 0.5
+    ALPHA0 = 0.01 # 0.8 1e-2
+    ALPHA_DECAYRATE = 0.5 # 0.8 0.5
 
     real_lambda = environment.get_system(model='real')
     ray_paths = utility.get_ray_paths()

@@ -4,7 +4,7 @@ import numpy as np
 TRACING_MODE = 'cube' # circle, cube
 
 # OPTIMIZATION
-SMOOTH_GRAD = True
+SMOOTH_GRAD = False
 FILTER_GRAD = True
 
 # GRID
