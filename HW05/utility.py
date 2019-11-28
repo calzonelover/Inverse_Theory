@@ -195,11 +195,9 @@ def smooth_map(s_real, kernel_size=(100, 100), mode='gaussian', pad_model='edge'
 '''
 line search
 '''
-def get_proper_alpha(t_obs, s0, L0, pk, method='backtrack'):
-    ALPHA0 = 1e-4
+def get_proper_alpha(t_obs, s0, L0, pk, ALPHA0 = 1e-4, ALPHA_DECAYRATE = 0.5, method='backtrack'):
     C = 0.1
     if method == 'backtrack':
-        ALPHA_DECAYRATE = 0.5
         alphak = ALPHA0
         while True:
             s1 = np.add(s0, np.multiply(alphak, pk))

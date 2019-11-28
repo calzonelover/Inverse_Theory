@@ -11,7 +11,7 @@ STEP_SR = 1600.0
 FIX_S_Y = 40
 FIX_R_Y = 60
 
-is_reduce_size = False
+is_reduce_size = True
 FACTOR = 3
 if is_reduce_size:
     NX = int(NX/FACTOR)

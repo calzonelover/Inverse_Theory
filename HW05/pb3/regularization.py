@@ -10,7 +10,7 @@ from scipy.ndimage import gaussian_filter, uniform_filter
 import utility, settings
 
 K_STOP = 10
-ALPHAS = np.logspace(-6.0, 6.0, num=12, base=10)
+ALPHAS = np.logspace(-5.0, 5.0, num=12, base=10)
 REPORT_LOG = {
     'alphas': [],
     'norm_model': [],
@@ -75,10 +75,20 @@ def main():
             ))
             pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 40))
 
+            alphak = utility.get_proper_alpha(
+                t_obs, s_model, L, pk,
+                ALPHA0 = 1.0, ALPHA_DECAYRATE = 0.8,
+                method='backtrack'
+            )
             s_model = np.add(
                 s_model,
-                pk
+                np.multiply(alphak, pk)
             )
+            # s_model = np.add(
+            #     s_model,
+            #     pk
+            # )
+
             s_model = utility.prevent_negative_velocity(s_model)
             L = utility.get_l(s_model, recalculate=True)
             res = utility.get_r(t_obs, s_model, L)
