@@ -75,19 +75,19 @@ def main():
             ))
             pk = utility.smooth_map(pk, mode='uniform', kernel_size=(10, 40))
 
-            alphak = utility.get_proper_alpha(
-                t_obs, s_model, L, pk,
-                ALPHA0 = 1.0, ALPHA_DECAYRATE = 0.8,
-                method='backtrack'
-            )
-            s_model = np.add(
-                s_model,
-                np.multiply(alphak, pk)
-            )
+            # alphak = utility.get_proper_alpha(
+            #     t_obs, s_model, L, pk,
+            #     ALPHA0 = 1.0, ALPHA_DECAYRATE = 0.8,
+            #     method='backtrack'
+            # )
             # s_model = np.add(
             #     s_model,
-            #     pk
+            #     np.multiply(alphak, pk)
             # )
+            s_model = np.add(
+                s_model,
+                pk
+            )
 
             s_model = utility.prevent_negative_velocity(s_model)
             L = utility.get_l(s_model, recalculate=True)
