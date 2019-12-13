@@ -165,3 +165,6 @@ Splitting the alpha parameters in the log-scale from xxx to xxx. The amount of t
     <br>
     <em>L-Curve from various trial of alpha with log and linear scale</em>
 </p>
+
+The L-Curve of mine does not looks like a proper shape that we expect.
+The reason might came from the max iteration of optimization it limit only 10 and it probably does not arrive to the minimal point yet.
